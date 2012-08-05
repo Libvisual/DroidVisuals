@@ -1761,8 +1761,6 @@ void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap, jboolean do_swap)
 {
 
-    return true;
-
     AndroidBitmapInfo  info;
     void*              pixels;
     int                ret;
