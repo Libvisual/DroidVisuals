@@ -1687,8 +1687,8 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     v.bin->set_video(v.video);
 
     v.bin->switch_set_style(VISUAL_SWITCH_STYLE_DIRECT);
-    v.bin->switch_set_automatic (1);
-    v.bin->switch_set_steps (3);
+    v.bin->switch_set_automatic (true);
+    v.bin->switch_set_steps (12);
 
     v.bin->connect(actor, input);
 
@@ -1712,11 +1712,13 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_initApp(JNIEnv
 }
 
 
+/*
 LV::VideoPtr new_video(int w, int h, VisVideoDepth depth)
 {
     LV::VideoPtr video = LV::Video::create(w, h, depth);
     return video;
 }
+*/
 
 /*
 void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
