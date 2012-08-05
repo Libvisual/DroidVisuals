@@ -96,7 +96,11 @@ extern "C" {
 
   void visual_usleep (uint64_t usecs)
   {
-      //std::this_thread::sleep_for (std::chrono::microseconds (usecs));
+      #ifdef HAVE_ANDROID
+      std::this_thread::sleep_for (std::chrono::microseconds (usecs));
+      #else
+      usleep(usecs);
+      #endif
   }
 
   VisTimer *visual_timer_new ()

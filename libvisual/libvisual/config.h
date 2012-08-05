@@ -9,11 +9,11 @@
 #define PACKAGE_URL       "@PACKAGE_URL@"
 #define PACKAGE_VERSION   "@PACKAGE_VERSION@"
 
-#define ENABLE_NLS        1
+//#define ENABLE_NLS        0
 #define GETTEXT_PACKAGE   "@GETTEXT_PACKAGE@"
 #define LOCALE_DIR        "@LOCALE_DIR@"
 //#define HAVE_GETTEXT      0
-#define HAVE_ICONV        0
+//#define HAVE_ICONV        0
 #define HAVE_SDL          0
 #define HAVE_GL           1
 

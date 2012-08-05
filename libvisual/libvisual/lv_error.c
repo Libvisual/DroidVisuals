@@ -151,9 +151,9 @@ const char *visual_error_to_string (int error)
 	error = abs (error);
 
 	if (error < VISUAL_ERROR_LIST_END) {
-		return _(__lv_error_human_readable[error]);
+		return (__lv_error_human_readable[error]);
 	} else {
-		return _("Unknown error");
+		return ("Unknown error");
 	}
 }
 
