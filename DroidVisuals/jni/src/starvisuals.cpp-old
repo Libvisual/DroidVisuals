@@ -33,7 +33,7 @@
 // Initial plugins. Preferences should override these.
 #define MORPH "checkers"
 #define ACTOR "lcdcontrol"
-#define INPUT "debug"
+#define INPUT "dummy"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
 #define URL_GPLv3 "http://www.gnu.org/licenses/gpl-3.0.txt"
@@ -1769,14 +1769,16 @@ void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
 JNIEXPORT jboolean JNICALL Java_net_starlon_starvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap, jboolean do_swap)
 {
 
+/*
     AndroidBitmapInfo  info;
     void*              pixels;
     int                ret;
     int depthflag;
     VisVideoDepth depth;
-    LV::VideoPtr vid;
+    static LV::VideoPtr vid;
+    static LV::VideoPtr sub;
 
-    //visual_mutex_lock(v.mutex);
+    visual_mutex_lock(v.mutex);
 
     if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
         LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
@@ -1788,29 +1790,37 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_starvisuals_NativeHelper_renderBitma
         return FALSE;
     }
 
-    vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
+    if(swap == NULL)
+        swap = visual_video_new();
 
-    if(v.bin->depth_changed() || 
+    if(vid == NULL || vid->get_width() != info.width || vid->get_height() != info.height)
+    {
+        vid = new_video(info.width, info.height, DEVICE_DEPTH);
+        visual_video_clone(swap, vid);
+    }
+
+    visual_video_set_buffer(vid, pixels);
+
+    if(visual_bin_depth_changed(v.bin) || 
         (info.width != v.video->get_width() || 
         info.height != v.video->get_height()) ) 
     {
         v.pluginIsGL = (visual_bin_get_depth (v.bin) == VISUAL_VIDEO_DEPTH_GL);
-        depthflag = v.bin->get_depth();
+        depthflag = visual_bin_get_depth(v.bin);
         depth = visual_video_depth_get_highest(depthflag);
         if(v.pluginIsGL)
         {
-            v.video->set_depth( VISUAL_VIDEO_DEPTH_GL);
+            visual_video_set_depth (v.video, VISUAL_VIDEO_DEPTH_GL);
         } else
         {
-            v.video->set_depth( depth);
+            visual_video_set_depth(v.video, depth);
         }
-        v.video->set_dimension(info.width, info.height);
-        v.video->set_pitch(info.width * visual_video_bpp_from_depth(depth));
-
-        if(v.video->get_pixels())
-            v.video->free_buffer();
-        v.video->allocate_buffer();
-        v.bin->sync(TRUE);
+        visual_video_set_dimension(v.video, info.width, info.height);
+        visual_video_set_pitch(v.video, info.width * visual_video_bpp_from_depth(depth));
+        if(v.video != NULL && visual_video_get_pixels(v.video))
+            visual_video_free_buffer(v.video);
+        visual_video_allocate_buffer(v.video);
+        visual_bin_sync(v.bin, TRUE);
     }
 
     if (0 && v.pluginIsGL) {
@@ -1818,16 +1828,25 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_starvisuals_NativeHelper_renderBitma
         //visual_bin_run (v.bin);
     } else {
 
-        v.bin->run();
+        visual_bin_run (v.bin);
     }
 
-    vid->convert_depth(v.video);
+    visual_video_depth_transform(vid, v.video);
+
+    if(do_swap)
+    {
+        int32_t data[vid->get_pitch() * vid->get_height()];
+        visual_video_clone(swap, vid);
+        visual_video_set_buffer(swap, data);
+        visual_video_blit_overlay(swap, vid, 0, 0, FALSE);
+
+        swap_video_BGR(vid, swap);
+    }
 
     AndroidBitmap_unlockPixels(env, bitmap);
 
-    vid->unref();
-
     //visual_mutex_unlock(v.mutex);
 
+*/
     return TRUE;
 }

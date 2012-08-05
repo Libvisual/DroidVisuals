@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "config.h"
-#include "gettext.h"
+//#include "config.h"
+//#include "gettext.h"
 #include <libvisual/libvisual.h>
 #include <math.h>
 
@@ -61,8 +61,8 @@ const VisPluginInfo *get_plugin_info (void)
 		.name     = "debug",
 		.author   = "Vitaly V. Bursov <vitalyvb@urk.net>",
 		.version  = "0.2",
-		.about    = N_("debug input plugin"),
-		.help     = N_("this will generate a sine wave for debugging purposes"),
+		.about    = ("debug input plugin"),
+		.help     = ("this will generate a sine wave for debugging purposes"),
 		.license  = VISUAL_PLUGIN_LICENSE_LGPL,
 
 		.init     = inp_debug_init,
