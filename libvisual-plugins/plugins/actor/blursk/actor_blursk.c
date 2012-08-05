@@ -50,8 +50,8 @@ const VisPluginInfo *get_plugin_info (void)
                 .name = "Blursk plugin",
                 .author = "Read AUTHORS",
                 .version = "0.0.1",
-                .about = N_("blursk visual plugin"),
-                .help = N_("This is the libvisual port of blursk xmms visualization"),
+                .about = ("blursk visual plugin"),
+                .help = ("This is the libvisual port of blursk xmms visualization"),
                 .license = VISUAL_PLUGIN_LICENSE_GPL,
 
                 .init = act_blursk_init,
