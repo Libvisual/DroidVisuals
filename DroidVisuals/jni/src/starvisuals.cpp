@@ -32,7 +32,7 @@
 
 // Initial plugins. Preferences should override these.
 #define MORPH "checkers"
-#define ACTOR "starscope"
+#define ACTOR "lcdcontrol"
 #define INPUT "dummy"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
@@ -1742,7 +1742,7 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     v.bin->set_depth(depth);
     v.bin->set_video(v.video);
 
-    v.bin->switch_set_style(VISUAL_SWITCH_STYLE_MORPH);
+    v.bin->switch_set_style(VISUAL_SWITCH_STYLE_DIRECT);
     v.bin->switch_set_automatic (1);
     v.bin->switch_set_steps (3);
 
