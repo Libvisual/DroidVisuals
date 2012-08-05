@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.app.ListActivity;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceFragment;
+//import android.preference.PreferenceFragment;
 import android.content.res.Resources;
 import android.content.Context;
 import android.os.Bundle;
@@ -23,8 +23,8 @@ import java.util.HashMap;
 
 public class MorphPreferencesActivity extends ListActivity
 {
-        private final static String TAG = "StarVisuals/PreferencesActivity";
-        private final static String PREFS = "StarVisualsPrefs";
+        private final static String TAG = "DroidVisuals/PreferencesActivity";
+        private final static String PREFS = "DroidVisualsPrefs";
         
         /** called by OS when app is created initially */
         @Override

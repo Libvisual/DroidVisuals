@@ -9,7 +9,7 @@ import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
-import android.preference.SwitchPreference;
+//import android.preference.SwitchPreference;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.os.Bundle;
@@ -20,8 +20,8 @@ import android.util.Log;
 
 public class EditSettingsActivity extends PreferenceActivity
 {
-        private final static String TAG = "StarVisuals/EditSettingsActivity";
-        private final static String PREFS = "StarVisualsPrefs";
+        private final static String TAG = "DroidVisuals/EditSettingsActivity";
+        private final static String PREFS = "DroidVisualsPrefs";
         
         private NativeHelper mNativeHelper;
         
@@ -46,7 +46,7 @@ public class EditSettingsActivity extends PreferenceActivity
             super.onPause();
 /*
             Intent i = new Intent(this, BroadcastReceiver.class);
-            i.setAction("com.starlon.froyvisuals.PREFS_UPDATE");
+            i.setAction("net.starlon.froyvisuals.PREFS_UPDATE");
             sendBroadcast(i);
 */
         }

@@ -27,24 +27,22 @@ import java.nio.ByteOrder;
 
 import org.libvisual.android.VisualObject;
 
-public class StarVisualsRenderer implements Renderer {
+public class DroidVisualsRenderer implements Renderer {
     private Visual vis;
     public VisualObject mVisualObject;
     private int mSurfaceWidth;
     private int mSurfaceHeight;
     private Stats mStats;
-    private StarVisuals mActivity;
-    //public Particles mParticles;
+    private DroidVisualsActivity mActivity;
     private boolean mInited = false;
 
-    public StarVisualsRenderer(Context context) {
-        vis = new Visual((StarVisuals)context, this);
+    public DroidVisualsRenderer(Context context) {
+        vis = new Visual((DroidVisualsActivity)context, this);
         mStats = new Stats();
         mStats.statsInit();
-        mActivity = (StarVisuals)context;
+        mActivity = (DroidVisualsActivity)context;
         //mVisualObject = mActivity.getVisualObject();
         mInited = true;
-        //mParticles  = new Particles(context);
     }
 
     public void destroy()
@@ -65,7 +63,6 @@ public class StarVisualsRenderer implements Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         vis.initialize(gl10, width, height);
-        //mParticles.onSurfaceChanged(gl10, width, height);
         //mVisualObject.onSizeChanged(width, height, mSurfaceWidth, mSurfaceHeight);
         mSurfaceWidth = width;
         mSurfaceHeight = height;
@@ -86,7 +83,6 @@ public class StarVisualsRenderer implements Renderer {
 
         timer.scheduleAtFixedRate(task, delay, period);
 
-        //mParticles.onSurfaceCreated(gl10, eglconfig);
     }
 
 
@@ -102,8 +98,8 @@ final class Visual {
     private int mTextureId = -1;
     private int[] textureCrop = new int[4]; 
     private boolean glInited = false;
-    private StarVisuals mActivity;
-    private StarVisualsRenderer mRenderer;
+    private DroidVisualsActivity mActivity;
+    private DroidVisualsRenderer mRenderer;
     private Bitmap mBitmap;
     private Paint mPaint;
     private Canvas mCanvas;
@@ -126,7 +122,7 @@ final class Visual {
             1.0f, 0.0f      // bottom right (V3)
     };
 
-    public Visual(StarVisuals activity, StarVisualsRenderer renderer) {
+    public Visual(DroidVisualsActivity activity, DroidVisualsRenderer renderer) {
         mActivity = activity;
         mRenderer = renderer;
         //mVisualObject = mActivity.getVisualObject();
@@ -268,7 +264,7 @@ final class Visual {
 
 
 
-        // If StarVisuals has text to display, then use a canvas and paint brush to display it.
+        // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
         if(text != null)
         {
@@ -380,7 +376,6 @@ final class Visual {
         mGL10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         mGL10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 
-        //mRenderer.mParticles.onDrawFrame(gl);
     }
 }
 

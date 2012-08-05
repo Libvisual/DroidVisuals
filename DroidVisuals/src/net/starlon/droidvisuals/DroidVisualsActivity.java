@@ -51,15 +51,13 @@ import java.io.IOException;
 import java.lang.Process;
 import java.lang.CharSequence;
 
-import com.openglesbook.particlesystem.ParticleSystemRenderer;
-
 import org.libvisual.android.VisualObject;
-import com.starlon.libscriptable.UtilsEvaluator;
+import net.starlon.libscriptable.UtilsEvaluator;
 
-public class StarVisuals extends Activity implements OnClickListener, OnSharedPreferenceChangeListener
+public class DroidVisualsActivity extends Activity implements OnClickListener, OnSharedPreferenceChangeListener
 {
-    private final static String TAG = "StarVisuals/StarVisualsActivity";
-    private final static String PREFS = "StarVisualsPrefs";
+    private final static String TAG = "DroidVisuals/DroidVisualsActivity";
+    private final static String PREFS = "DroidVisualsPrefs";
     private final static int WIDTH = 128;
     private final static int HEIGHT = 128;
     private final static int ARTWIDTH = 100;
@@ -124,8 +122,7 @@ public class StarVisuals extends Activity implements OnClickListener, OnSharedPr
     public HashMap<String, Bitmap> mAlbumMap = new HashMap<String, Bitmap>();
     private SharedPreferences mPrefs;
     private SharedPreferences.Editor mEditor;
-    private StarVisualsRenderer mRendererGLVis;
-    private ParticleSystemRenderer mRendererGLPS;
+    private DroidVisualsRenderer mRendererGLVis;
 
     private static int SWIPE_MIN_DISTANCE = 120;
     private static int SWIPE_MAX_OFF_PATH = 250;
@@ -133,8 +130,8 @@ public class StarVisuals extends Activity implements OnClickListener, OnSharedPr
     private GestureDetector mGestureDetector = null;
     OnTouchListener mGestureListener;
 
-    private StarVisualsView mView = null;
-    private StarVisualsViewGL mViewGL = null;
+    private DroidVisualsView mView = null;
+    private DroidVisualsViewGL mViewGL = null;
 
     private Stats mStats = new Stats();
     private VisualObject mVisualObject;
@@ -423,19 +420,19 @@ public class StarVisuals extends Activity implements OnClickListener, OnSharedPr
     {
         if(detectGL20())
         {
-            mRendererGLVis = new StarVisualsRenderer(this);
+            mRendererGLVis = new DroidVisualsRenderer(this);
     
-            mViewGL = new StarVisualsViewGL(this);
+            mViewGL = new DroidVisualsViewGL(this);
     
             mViewGL.setRenderer(mRendererGLVis);
 
-            mViewGL.setOnClickListener(StarVisuals.this);
+            mViewGL.setOnClickListener(DroidVisualsActivity.this);
             mViewGL.setOnTouchListener(mGestureListener);
         }
         else
         {
-            mView = new StarVisualsView(this);
-            mView.setOnClickListener(StarVisuals.this);
+            mView = new DroidVisualsView(this);
+            mView.setOnClickListener(DroidVisualsActivity.this);
             mView.setOnTouchListener(mGestureListener);
         }
 

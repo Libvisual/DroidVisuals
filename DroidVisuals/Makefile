@@ -4,7 +4,7 @@
 
 APPNAME = DroidVisuals
 ACTIVITY = DroidVisualsActivity
-TARGET = android-8
+TARGET = android-15
 
 all:
 	@ndk-build BUILD_TYPE=release

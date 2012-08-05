@@ -22,7 +22,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.starlon.droidvisuals;
+package net.starlon.libscriptable;
 
 /**
  * An abstraction for a C pointer data type.  A CPtr instance represents, on

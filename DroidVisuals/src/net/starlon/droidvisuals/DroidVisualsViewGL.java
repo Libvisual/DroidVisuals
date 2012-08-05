@@ -38,9 +38,9 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 
-class StarVisualsViewGL extends GLSurfaceView {
-    private static final String TAG = "StarVisuals/StarVisualsView";
-    private StarVisuals mActivity;
+class DroidVisualsViewGL extends GLSurfaceView {
+    private static final String TAG = "DroidVisuals/DroidVisualsView";
+    private DroidVisualsActivity mActivity;
     private Stats mStats;
     private float mLastX = -1.0f;
     private float mLastY = -1.0f;
@@ -49,10 +49,10 @@ class StarVisualsViewGL extends GLSurfaceView {
     private final ReentrantLock mLock = new ReentrantLock();
 
     //AudioRecord recorder = findAudioRecord();
-    public StarVisualsViewGL(Context context) {
+    public DroidVisualsViewGL(Context context) {
         super(context);
 
-        mActivity = (StarVisuals)context;
+        mActivity = (DroidVisualsActivity)context;
 
         init(true, 0, 0);
     }

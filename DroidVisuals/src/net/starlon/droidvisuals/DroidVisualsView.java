@@ -23,14 +23,14 @@ import java.text.DecimalFormat;
 
 
 
-public class StarVisualsView extends View {
-    private final String TAG = "StarVisuals/StarVisualsView";
+public class DroidVisualsView extends View {
+    private final String TAG = "DroidVisuals/DroidVisualsView";
     private final int INT_BYTES = 4;
     private final Bitmap.Config RGB = Bitmap.Config.ARGB_8888;
     public Bitmap mBitmap = null;
     public Bitmap mBitmapSecond = null;
     public IntBuffer mIntBuffer = null;
-    private StarVisuals mActivity = null;
+    private DroidVisualsActivity mActivity = null;
     private Stats mStatsNative = null;
     private Stats mStatsCanvas = null;
     private int WIDTH = 128;
@@ -41,12 +41,12 @@ public class StarVisualsView extends View {
     public Thread mThread = null;
     private final ReentrantLock mLock = new ReentrantLock();
 
-    public StarVisualsView(Context context) {
+    public DroidVisualsView(Context context) {
         super(context);
 
-        Log.e(TAG, "StarVisualsVIew constructor");
+        Log.e(TAG, "DroidVisualsVIew constructor");
 
-        mActivity = (StarVisuals)context;
+        mActivity = (DroidVisualsActivity)context;
 
         mStatsNative = new Stats();
         mStatsCanvas = new Stats();
@@ -109,7 +109,7 @@ public class StarVisualsView extends View {
     {
         stopThread();
         mLock.lock();
-        synchronized(mActivity.mSynch)
+        synchronized(mActivity)
         {
     
             if(mBitmap != null) 
@@ -183,7 +183,7 @@ public class StarVisualsView extends View {
                         double delta;
                         double avg;
                         double diff;
-                        synchronized(mActivity.mSynch)
+                        synchronized(mActivity)
                         {
                             then = mStatsCanvas.nowMil();
                             mStatsNative.startFrame();

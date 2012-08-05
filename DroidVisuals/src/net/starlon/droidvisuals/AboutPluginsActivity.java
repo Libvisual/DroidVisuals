@@ -1,4 +1,4 @@
-package com.starlon.droidvisuals;
+package net.starlon.droidvisuals;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -14,7 +14,7 @@ import android.content.Intent;
 
 public class AboutPluginsActivity extends ListActivity
 {
-    private final static String TAG = "StarVisuals/AboutPluginsActivity";
+    private final static String TAG = "DroidVisuals/AboutPluginsActivity";
     private final static String ACTORS = "Actors";
     private final static String INPUTS = "Inputs";
     private final static String MORPHS = "Morphs";

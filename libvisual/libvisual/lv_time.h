@@ -27,6 +27,7 @@
 #include <libvisual/lv_defines.h>
 #include <libvisual/lv_object.h>
 #include <time.h>
+#include <unistd.h>
 
 /**
  * @defgroup VisTime VisTime
