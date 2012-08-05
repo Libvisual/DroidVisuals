@@ -96,7 +96,7 @@ extern "C" {
 
   void visual_usleep (uint64_t usecs)
   {
-      std::this_thread::sleep_for (std::chrono::microseconds (usecs));
+      //std::this_thread::sleep_for (std::chrono::microseconds (usecs));
   }
 
   VisTimer *visual_timer_new ()
