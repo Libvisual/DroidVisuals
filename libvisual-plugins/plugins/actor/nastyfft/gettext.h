@@ -1,1 +1,1 @@
-../gettext.h
+../../../../DroidVisuals/include/gettext.h

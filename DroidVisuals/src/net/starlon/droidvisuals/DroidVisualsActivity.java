@@ -285,8 +285,8 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         class MyGestureDetector extends SimpleOnGestureListener {
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                //synchronized(this)
-                if(false){
+                synchronized(this)
+                {
                     int actor = -1;
                     try {
                         if(velocityX > velocityY)
@@ -297,14 +297,14 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Left swipe
                                 Log.w(TAG, "Left swipe...");
-                                //NativeHelper.finalizeSwitch(-1);
-                                //actor = NativeHelper.actorGetCurrent();
+                                NativeHelper.finalizeSwitch(-1);
+                                actor = NativeHelper.actorGetCurrent();
                             }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && 
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Right swipe
                                 Log.w(TAG, "Right swipe...");
-                                //NativeHelper.finalizeSwitch(1);
-                                //actor = NativeHelper.actorGetCurrent();
+                                NativeHelper.finalizeSwitch(1);
+                                actor = NativeHelper.actorGetCurrent();
                             }
                         } else {
                             if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)

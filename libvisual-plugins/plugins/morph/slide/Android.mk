@@ -36,8 +36,3 @@ LOCAL_SHARED_LIBRARIES := gnustl visual
 LOCAL_ARM_MODE := arm
 include $(BUILD_SHARED_LIBRARY)
 
-
-CMakeLists.txt  common.h            morph_slide_left.c   morph_slide_up.c
-common.c        morph_slide_down.c  morph_slide_right.c
-
-
