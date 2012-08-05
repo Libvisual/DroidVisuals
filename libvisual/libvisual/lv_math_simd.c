@@ -5,6 +5,8 @@
 #include "config.h"
 #endif
 
+#include <math.h>
+
 #ifndef _ORC_INTEGER_TYPEDEFS_
 #define _ORC_INTEGER_TYPEDEFS_
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
