@@ -75,11 +75,11 @@ void LCDControl::Stop() {
 }
 
 void LCDControl::Lock() {
-    mutex_.lock();
+    //mutex_.lock();
 }
 
 void LCDControl::Unlock() {
-    mutex_.unlock();
+    //mutex_.unlock();
 }
 
 void LCDControl::Tick()

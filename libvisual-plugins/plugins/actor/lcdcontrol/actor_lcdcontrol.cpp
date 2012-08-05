@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <gettext.h>
+//#include <gettext.h>
 #include <math.h>
 
 #include <libvisual/libvisual.h>

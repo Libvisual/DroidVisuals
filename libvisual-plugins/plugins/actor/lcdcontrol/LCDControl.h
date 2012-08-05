@@ -50,7 +50,7 @@ class LCDControl : public CFG {
     void ConfigSetup();
 
     public:
-    std::mutex mutex_;
+    //std::mutex mutex_;
     Stats stats_;
     void *priv_;
     LCDControl(void *priv, VisEventQueue *eventqueue);
