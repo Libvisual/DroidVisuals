@@ -52,7 +52,7 @@ import java.lang.Process;
 import java.lang.CharSequence;
 
 import org.libvisual.android.VisualObject;
-import net.starlon.libscriptable.UtilsEvaluator;
+//import net.starlon.libscriptable.UtilsEvaluator;
 
 public class DroidVisualsActivity extends Activity implements OnClickListener, OnSharedPreferenceChangeListener
 {
@@ -135,17 +135,19 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
     private Stats mStats = new Stats();
     private VisualObject mVisualObject;
-    private UtilsEvaluator mEvaluator;
+    //private UtilsEvaluator mEvaluator;
 
     public VisualObject getVisualObject()
     {
         return mVisualObject;
     }
 
+/*
     public UtilsEvaluator getEvaluator()
     {
         return mEvaluator;
     }
+*/
 
     private void makeFile(String file, int id)
     {
@@ -262,7 +264,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
             WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 
-        mEvaluator = new UtilsEvaluator();
+        //mEvaluator = new UtilsEvaluator();
 
 /*
         String val = mEvaluator.eval("return LCD.uptime('%d d %H:%M:%S')");
@@ -283,8 +285,8 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         class MyGestureDetector extends SimpleOnGestureListener {
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                synchronized(this)
-                {
+                //synchronized(this)
+                if(false){
                     int actor = -1;
                     try {
                         if(velocityX > velocityY)
@@ -295,14 +297,14 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Left swipe
                                 Log.w(TAG, "Left swipe...");
-                                NativeHelper.finalizeSwitch(-1);
-                                actor = NativeHelper.actorGetCurrent();
+                                //NativeHelper.finalizeSwitch(-1);
+                                //actor = NativeHelper.actorGetCurrent();
                             }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && 
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Right swipe
                                 Log.w(TAG, "Right swipe...");
-                                NativeHelper.finalizeSwitch(1);
-                                actor = NativeHelper.actorGetCurrent();
+                                //NativeHelper.finalizeSwitch(1);
+                                //actor = NativeHelper.actorGetCurrent();
                             }
                         } else {
                             if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
@@ -462,6 +464,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
     public void setPlugins(boolean now)
     {
+/*
         mActor = ACTOR;//mPrefs.getString("prefs_actor_selection", ACTOR);
         NativeHelper.actorSetCurrentByName(mActor, now);
         mInput = INPUT;//mPrefs.getString("prefs_input_selection", INPUT);
@@ -472,6 +475,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         NativeHelper.setMorphStyle(mDoMorph);
         enableMic(mInput);
         NativeHelper.finalizeSwitch(0);
+*/
     }
 
     public BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -496,7 +500,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                 mSongTrack = intent.getStringExtra("track");
                 mSongChanged = System.currentTimeMillis();
                 mAlbumArt = mAlbumMap.get(mSongAlbum);
-                NativeHelper.newSong();
+                //NativeHelper.newSong();
                 //warn("(" + mSongTrack + ")", 5000, true);
             }
             else if(action.equals("com.android.music.playbackcomplete"))
@@ -507,7 +511,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                 mSongTrack = null;
                 mSongChanged = 0l;
                 mAlbumArt = null;
-                NativeHelper.newSong();
+                //NativeHelper.newSong();
                 //warn("Ended playback...", true);
             }
         }
@@ -662,12 +666,11 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     /* load our native library */
     static {
         System.loadLibrary("gnustl_shared");
+        System.loadLibrary("orc");
         System.loadLibrary("visual");
-        System.loadLibrary("common");
-        System.loadLibrary("lvclient");
         System.loadLibrary("luascript");
         System.loadLibrary("json");
-        System.loadLibrary("scriptable");
+        //System.loadLibrary("scriptable");
         System.loadLibrary("main");
     }
 

@@ -1,7 +1,7 @@
 
 WARNING_CFLAGS 		:= -Wall -Wstrict-aliasing -Wcast-align -Waddress -Wmissing-braces -Wimplicit -Wunused -Wno-unused-variable
 
-LV_C_INCLUDES  		:= jni/includes/ 
+LV_C_INCLUDES  		:= ./includes/ 
 LV_CFLAGS      		:= $(WARNING_CFLAGS)
 LV_CXXFLAGS    		:=
 LV_CPPFLAGS    		:= -std=gnu++0x -fexceptions

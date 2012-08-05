@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "config.h"
-#include "gettext.h"
+//#include "config.h"
+//#include "gettext.h"
 #include <libvisual/libvisual.h>
 
 VISUAL_PLUGIN_API_VERSION_VALIDATOR
@@ -67,8 +67,8 @@ const VisPluginInfo *get_plugin_info (void)
 		.name = "libvisual analyzer",
 		.author = "Dennis Smit <ds@nerds-incorporated.org>",
 		.version = "1.0",
-		.about = N_("Libvisual analyzer plugin"),
-		.help = N_("A nice simple spectrum analyzer plugin."),
+		.about = ("Libvisual analyzer plugin"),
+		.help = ("A nice simple spectrum analyzer plugin."),
 		.license = VISUAL_PLUGIN_LICENSE_LGPL,
 
 		.init = lv_analyzer_init,

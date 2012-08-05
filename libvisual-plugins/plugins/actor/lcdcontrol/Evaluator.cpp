@@ -23,13 +23,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-//#include <jni.h>
+#include <jni.h>
 #include <libvisual/libvisual.h>
 
 #include "luascript.h"
 #include "Evaluator.h"
 #include "SpecialChar.h"
-//#include "CPtr.h"
+#include "CPtr.h"
 #include "debug.h"
 
 using namespace LCD;
@@ -83,11 +83,10 @@ std::string Evaluator::Eval(std::string str)
 }
 
 /////////////////////// JNI glue
-/*
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluate(
+JNIEXPORT jstring JNICALL Java_net_starlon_libscriptable_UtilsEvaluator_evaluate(
     JNIEnv *env, jclass clazz, jobject obj, jstring str)
 {
     Evaluator *eval = getObjectFromCPtr<Evaluator *>( env, obj );
@@ -101,7 +100,7 @@ JNIEXPORT jstring JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluate
     return env->NewStringUTF(val.c_str());
 }
 
-JNIEXPORT jobject JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluatorNew(
+JNIEXPORT jobject JNICALL Java_net_starlon_libscriptable_UtilsEvaluator_evaluatorNew(
     JNIEnv *env, jclass clazz)
 {
     std::set_terminate(std::abort);
@@ -112,7 +111,7 @@ JNIEXPORT jobject JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluato
     jmethodID mid;
     jobject obj;
 
-    tempClass = env->FindClass("com/starlon/libscriptable/CPtr");
+    tempClass = env->FindClass("net/starlon/libscriptable/CPtr");
 
     mid = env->GetMethodID(tempClass, "<init>", "()V");
 
@@ -125,7 +124,7 @@ JNIEXPORT jobject JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluato
     return obj;
 }
 
-JNIEXPORT void JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluatorDel(
+JNIEXPORT void JNICALL Java_net_starlon_libscriptable_UtilsEvaluator_evaluatorDel(
     JNIEnv *env, jclass clazz, jobject obj)
 {
     Evaluator *eval = getObjectFromCPtr<Evaluator *>(env, obj);
@@ -133,4 +132,4 @@ JNIEXPORT void JNICALL Java_com_starlon_libscriptable_UtilsEvaluator_evaluatorDe
     delete eval;
 }
 }//extern
-*/
+
