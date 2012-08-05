@@ -15,8 +15,8 @@ IF(TARGET_ARCH_X86)
   ENABLE_LANGUAGE(ASM-ATT)
   IF(CMAKE_ASM-ATT_COMPILER_WORKS)
 	SET(EXTRA_SOURCES loopx86.s)
-  ENDIF(CMAKE_ASM-ATT_COMPILER_WORKS)
-ENDIF(TARGET_ARCH_X86)
+  ENDIF()
+ENDIF()
 
 SET(actor_blursk_SOURCES
   actor_blursk.c
@@ -36,10 +36,14 @@ SET(actor_blursk_SOURCES
 )
 
 ADD_LIBRARY(actor_blursk MODULE ${actor_blursk_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(actor_blursk PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(actor_blursk
   ${LIBVISUAL_LIBRARIES}
+  m
 )
 
 INSTALL(TARGETS actor_blursk LIBRARY DESTINATION ${LV_ACTOR_PLUGIN_DIR})

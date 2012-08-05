@@ -1,5 +1,5 @@
 /* Libvisual-plugins - Standard plugins for libvisual
- * 
+ *
  * Copyright (C) 2004, 2005, 2006 Dennis Smit <ds@nerds-incorporated.org>
  *
  * Authors: Dennis Smit <ds@nerds-incorporated.org>
@@ -30,7 +30,7 @@ typedef struct {
 	int			 height;
 	int			 width;
 
-	VisPalette		 pal;
+	VisPalette		*pal;
 
 	float			 intense1[256];
 	float			 intense2[256];

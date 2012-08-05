@@ -26,9 +26,11 @@
 #include <libvisual/libvisual.h>
 #include <math.h>
 
+VISUAL_PLUGIN_API_VERSION_VALIDATOR
+
 #define OUTPUT_RATE       44100
 #define OUTPUT_SAMPLES    4096
-#define DEFAULT_FREQUENCY (OUTPUT_RATE/25)
+#define DEFAULT_FREQUENCY (OUTPUT_RATE/500)
 #define DEFAULT_AMPLITUDE 1.0
 
 typedef struct {
@@ -39,8 +41,6 @@ typedef struct {
 	float angle_step;
 } DebugPriv;
 
-const VisPluginInfo *get_plugin_info (int *count);
-
 static int inp_debug_init (VisPluginData *plugin);
 static int inp_debug_cleanup (VisPluginData *plugin);
 static int inp_debug_events (VisPluginData *plugin, VisEventQueue *events);
@@ -49,15 +49,13 @@ static int inp_debug_upload (VisPluginData *plugin, VisAudio *audio);
 static void change_param (VisPluginData *plugin, VisParamEntry *param);
 static void setup_wave (DebugPriv *priv);
 
-VISUAL_PLUGIN_API_VERSION_VALIDATOR
-
-const VisPluginInfo *get_plugin_info (int *count)
+const VisPluginInfo *get_plugin_info (void)
 {
-	static VisInputPlugin input[] = {{
+	static VisInputPlugin input = {
 		.upload = inp_debug_upload
-	}};
+	};
 
-	static VisPluginInfo info[] = {{
+	static VisPluginInfo info = {
 		.type     = VISUAL_PLUGIN_TYPE_INPUT,
 		.plugname = "debug",
 		.name     = "debug",
@@ -70,12 +68,10 @@ const VisPluginInfo *get_plugin_info (int *count)
 		.init     = inp_debug_init,
 		.cleanup  = inp_debug_cleanup,
 		.events   = inp_debug_events,
-		.plugin   = VISUAL_OBJECT (&input[0])
-	}};
+		.plugin   = VISUAL_OBJECT (&input)
+	};
 
-	*count = VISUAL_TABLESIZE (info);
-
-	return info;
+	return &info;
 }
 
 static int inp_debug_init (VisPluginData *plugin)
@@ -89,6 +85,10 @@ static int inp_debug_init (VisPluginData *plugin)
 		VISUAL_PARAM_LIST_ENTRY_FLOAT ("ampltitude", DEFAULT_AMPLITUDE),
 		VISUAL_PARAM_LIST_END
 	};
+
+#if ENABLE_NLS
+	bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
+#endif
 
 	priv = visual_mem_new0 (DebugPriv, 1);
 	visual_object_set_private (VISUAL_OBJECT (plugin), priv);
@@ -162,11 +162,14 @@ static int inp_debug_upload (VisPluginData *plugin, VisAudio *audio)
 		}
 	}
 
-	VisBuffer buffer;
-	visual_buffer_init (&buffer, data, VISUAL_TABLESIZE (data), NULL);
+	VisBuffer *buffer = visual_buffer_new_wrap_data (data, VISUAL_TABLESIZE (data));
 
-	visual_audio_samplepool_input (audio->samplepool, &buffer, VISUAL_AUDIO_SAMPLE_RATE_44100,
-			VISUAL_AUDIO_SAMPLE_FORMAT_S16, VISUAL_AUDIO_SAMPLE_CHANNEL_STEREO);
+	visual_audio_input (audio, buffer,
+	                    VISUAL_AUDIO_SAMPLE_RATE_44100,
+	                    VISUAL_AUDIO_SAMPLE_FORMAT_S16,
+	                    VISUAL_AUDIO_SAMPLE_CHANNEL_STEREO);
+
+	visual_buffer_unref (buffer);
 
 	return 0;
 }

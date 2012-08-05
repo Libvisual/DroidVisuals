@@ -14,7 +14,10 @@ SET(actor_lv_gltest_SOURCES
 )
 
 ADD_LIBRARY(actor_lv_gltest MODULE ${actor_lv_gltest_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(actor_lv_gltest PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(actor_lv_gltest
   ${LIBVISUAL_LIBRARIES}

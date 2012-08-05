@@ -24,9 +24,9 @@
 #include <config.h>
 #include "lv_log.h"
 #include "lv_common.h"
-#include "gettext.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define LV_LOG_MAX_MESSAGE_SIZE 1024
 
@@ -55,6 +55,30 @@ static int is_valid_severity (VisLogSeverity severity)
     return (severity >= VISUAL_LOG_DEBUG && severity <= VISUAL_LOG_CRITICAL);
 }
 
+static const char *shorten_filename (const char* filename, unsigned int parts)
+{
+	/* Start looking for '/' from the end of the filename */
+	const char *s = filename + strlen (filename);
+
+	unsigned int i;
+
+	for (i = 0; i < parts; i++) {
+		/* Scan backwards until we hit '/' or the beginning of the string */
+		while (s != filename && *s != '/')
+			s--;
+
+		/* If we hit the beginning, we just return the filename, unmodified */
+		if (s == filename)
+			return filename;
+
+		/* Skip this instance of / */
+		s--;
+	}
+
+	/* We found the final /. Return the substring that begins right after it */
+	return s + 2;
+}
+
 void visual_log_set_verbosity (VisLogSeverity level)
 {
 	verbosity = level;
@@ -77,9 +101,7 @@ void visual_log_set_handler (VisLogSeverity severity, VisLogHandlerFunc func, vo
 }
 
 void _lv_log (VisLogSeverity severity,
-#if defined(_LV_HAVE_LOG_SOURCE)
     const char *file, int line, const char *funcname,
-#endif
     const char *fmt, ...)
 {
 	VisLogSource source;
@@ -101,15 +123,9 @@ void _lv_log (VisLogSeverity severity,
 	vsnprintf (message, LV_LOG_MAX_MESSAGE_SIZE-1, fmt, va);
 	va_end (va);
 
-#if defined(_LV_LOG_HAVE_SOURCE)
-	source.file = file;
+	source.file = shorten_filename (file, 3);
 	source.func = funcname;
 	source.line = line;
-#else
-	source.file = "(unknown file)";
-	source.func = "(unknown func)";
-	source.line = 0;
-#endif
 
 	handler = &log_handlers[severity];
 
@@ -123,10 +139,7 @@ void _lv_log (VisLogSeverity severity,
 static void output_to_stderr (VisLogSeverity severity, const char *msg,
 	VisLogSource const *source)
 {
-#if defined(_LV_LOG_HAVE_SOURCE)
 	fprintf (stderr, "%s %s:%d:%s: %s\n", log_prefixes[severity],
 		 source->file, source->line, source->func, msg);
-#else
-	fprintf (stderr, "%s %s\n", log_prefixes[severity], msg);
-#endif
+	fflush (stderr);
 }

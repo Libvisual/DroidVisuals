@@ -13,10 +13,14 @@ SET(input_debug_SOURCES
 )
 
 ADD_LIBRARY(input_debug MODULE ${input_debug_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(input_debug PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(input_debug
   ${LIBVISUAL_LIBRARIES}
+  m
 )
 
 INSTALL(TARGETS input_debug LIBRARY DESTINATION ${LV_INPUT_PLUGIN_DIR})

@@ -24,10 +24,6 @@
 #ifndef _LV_KEYSYM_H
 #define _LV_KEYSYM_H
 
-#include <libvisual/lv_defines.h>
-
-VISUAL_BEGIN_DECLS
-
 /**
  * Enumerate values used within the libvisual event system for keyboard events.
  *
@@ -38,7 +34,6 @@ VISUAL_BEGIN_DECLS
  * The basic keys are also mapped as in the ASCII table so basic
  * keyboard support is easy to implement within a libvisual client.
  *
- * @see visual_event_queue_add_keyboard
  */
 typedef enum {
 	VKEY_UNKNOWN		= 0,
@@ -227,7 +222,5 @@ struct _VisKeySym {
 	VisKey		sym;	/**< Keyboard key to which everything relates. */
 	int		mod;	/**< Modifier vlags, Using key modifiers from the VisKeyMod enumerate. */
 };
-
-VISUAL_END_DECLS
 
 #endif /* _LV_KEYSYM_H */

@@ -1,10 +1,8 @@
 /* Libvisual-plugins - Standard plugins for libvisual
- * 
+ *
  * Copyright (C) 2004, 2005, 2006 Dennis Smit <ds@nerds-incorporated.org>
  *
  * Authors: Dennis Smit <ds@nerds-incorporated.org>
- *
- * $Id: actor_jakdaw.c,v 1.26 2006/01/27 20:19:16 synap Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,42 +19,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <gettext.h>
+#include "config.h"
+#include "gettext.h"
 
 #include "feedback.h"
 #include "plotter.h"
-
 #include <libvisual/libvisual.h>
 
-const VisPluginInfo *get_plugin_info (int *count);
+VISUAL_PLUGIN_API_VERSION_VALIDATOR
 
 static int act_jakdaw_init (VisPluginData *plugin);
 static int act_jakdaw_cleanup (VisPluginData *plugin);
 static int act_jakdaw_requisition (VisPluginData *plugin, int *width, int *height);
-static int act_jakdaw_dimension (VisPluginData *plugin, VisVideo *video, int width, int height);
+static int act_jakdaw_resize (VisPluginData *plugin, int width, int height);
 static int act_jakdaw_events (VisPluginData *plugin, VisEventQueue *events);
 static VisPalette *act_jakdaw_palette (VisPluginData *plugin);
 static int act_jakdaw_render (VisPluginData *plugin, VisVideo *video, VisAudio *audio);
 
-VISUAL_PLUGIN_API_VERSION_VALIDATOR
-
-const VisPluginInfo *get_plugin_info (int *count)
+const VisPluginInfo *get_plugin_info (void)
 {
-	static VisActorPlugin actor[] = {{
+	static VisActorPlugin actor = {
 		.requisition = act_jakdaw_requisition,
 		.palette = act_jakdaw_palette,
 		.render = act_jakdaw_render,
 		.vidoptions.depth = VISUAL_VIDEO_DEPTH_32BIT
-	}};
+	};
 
-	static VisPluginInfo info[] = {{
+	static VisPluginInfo info = {
 		.type = VISUAL_PLUGIN_TYPE_ACTOR,
 
 		.plugname = "jakdaw",
@@ -71,12 +60,10 @@ const VisPluginInfo *get_plugin_info (int *count)
 		.cleanup = act_jakdaw_cleanup,
 		.events = act_jakdaw_events,
 
-		.plugin = VISUAL_OBJECT (&actor[0])
-	}};
+		.plugin = VISUAL_OBJECT (&actor)
+	};
 
-	*count = sizeof (info) / sizeof (*info);
-
-	return info;
+	return &info;
 }
 
 static int act_jakdaw_init (VisPluginData *plugin)
@@ -120,7 +107,7 @@ static int act_jakdaw_init (VisPluginData *plugin)
 	*/
 
 #if ENABLE_NLS
-	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
 #endif
 
 	priv = visual_mem_new0 (JakdawPrivate, 1);
@@ -141,8 +128,8 @@ static int act_jakdaw_init (VisPluginData *plugin)
 
 	visual_param_container_add_many (paramcontainer, params);
 
-	priv->pcmbuf = visual_buffer_new_allocate (512 * sizeof (float), visual_buffer_destroyer_free);
-	priv->freqbuf = visual_buffer_new_allocate (256 * sizeof (float), visual_buffer_destroyer_free);
+	priv->pcmbuf = visual_buffer_new_allocate (512 * sizeof (float));
+	priv->freqbuf = visual_buffer_new_allocate (256 * sizeof (float));
 
 	return 0;
 }
@@ -153,8 +140,8 @@ static int act_jakdaw_cleanup (VisPluginData *plugin)
 
 	_jakdaw_feedback_close (priv);
 
-	visual_object_unref (VISUAL_OBJECT (priv->pcmbuf));
-	visual_object_unref (VISUAL_OBJECT (priv->freqbuf));
+	visual_buffer_unref (priv->pcmbuf);
+	visual_buffer_unref (priv->freqbuf);
 
 	visual_mem_free (priv);
 
@@ -180,11 +167,9 @@ static int act_jakdaw_requisition (VisPluginData *plugin, int *width, int *heigh
 	return 0;
 }
 
-static int act_jakdaw_dimension (VisPluginData *plugin, VisVideo *video, int width, int height)
+static int act_jakdaw_resize (VisPluginData *plugin, int width, int height)
 {
 	JakdawPrivate *priv = visual_object_get_private (VISUAL_OBJECT (plugin));
-
-	visual_video_set_dimension (video, width, height);
 
 	priv->xres = width;
 	priv->yres = height;
@@ -203,8 +188,7 @@ static int act_jakdaw_events (VisPluginData *plugin, VisEventQueue *events)
 	while (visual_event_queue_poll (events, &ev)) {
 		switch (ev.type) {
 			case VISUAL_EVENT_RESIZE:
-				act_jakdaw_dimension (plugin, ev.event.resize.video,
-						ev.event.resize.width, ev.event.resize.height);
+				act_jakdaw_resize (plugin, ev.event.resize.width, ev.event.resize.height);
 				break;
 
 			case VISUAL_EVENT_PARAM:

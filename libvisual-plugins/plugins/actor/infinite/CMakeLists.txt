@@ -21,10 +21,14 @@ SET(actor_infinite_SOURCES
 )
 
 ADD_LIBRARY(actor_infinite MODULE ${actor_infinite_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(actor_infinite PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(actor_infinite
   ${LIBVISUAL_LIBRARIES}
+  m
 )
 
 INSTALL(TARGETS actor_infinite LIBRARY DESTINATION ${LV_ACTOR_PLUGIN_DIR})

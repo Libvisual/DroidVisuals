@@ -32,9 +32,7 @@
  * @{
  */
 
-VISUAL_BEGIN_DECLS
-
-#define VISUAL_GL_ATTRIBUTE_ENTRY(obj)			(VISUAL_CHECK_CAST ((obj), VisGLAttributeEntry))
+#define VISUAL_GL_ATTRIBUTE_ENTRY(obj)			(VISUAL_CHECK_CAST ((obj), VisGLAttrEntry))
 
 /**
  * Enumerate with GL attributes.
@@ -58,17 +56,15 @@ typedef enum {
 	VISUAL_GL_ATTRIBUTE_ACCUM_BLUE_SIZE,   /**< Number of blue accum bits. */
 	VISUAL_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE,  /**< Number of alpha accum bits. */
 	VISUAL_GL_ATTRIBUTE_LAST
-} VisGLAttribute;
+} VisGLAttr;
 
-typedef struct _VisGLAttributeEntry VisGLAttributeEntry;
+typedef struct _VisGLAttrEntry VisGLAttrEntry;
 
-struct _VisGLAttributeEntry {
-	VisGLAttribute attribute;
-	int            value;
-	int            mutated;
+struct _VisGLAttrEntry {
+	VisGLAttr attribute;
+	int       value;
+	int       mutated;
 };
-
-VISUAL_END_DECLS
 
 /**
  * @}

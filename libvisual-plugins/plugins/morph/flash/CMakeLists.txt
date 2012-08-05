@@ -13,7 +13,10 @@ SET(morph_flash_SOURCES
 )
 
 ADD_LIBRARY(morph_flash MODULE ${morph_flash_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(morph_flash PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(morph_flash
   ${LIBVISUAL_LIBRARIES}

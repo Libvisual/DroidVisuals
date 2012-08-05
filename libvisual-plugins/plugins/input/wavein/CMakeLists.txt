@@ -1,0 +1,26 @@
+INCLUDE_DIRECTORIES(
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_BINARY_DIR}
+  ${LIBVISUAL_INCLUDE_DIRS}
+)
+
+LINK_DIRECTORIES(
+  ${LIBVISUAL_LIBRARY_DIRS}
+)
+
+SET(input_wavein_SOURCES
+  input_wavein.cpp
+)
+
+ADD_LIBRARY(input_wavein MODULE ${input_wavein_SOURCES})
+
+SET_TARGET_PROPERTIES(input_wavein PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
+
+TARGET_LINK_LIBRARIES(input_wavein
+  ${LIBVISUAL_LIBRARIES}
+  winmm
+)
+
+INSTALL(TARGETS input_wavein LIBRARY DESTINATION ${LV_INPUT_PLUGIN_DIR})

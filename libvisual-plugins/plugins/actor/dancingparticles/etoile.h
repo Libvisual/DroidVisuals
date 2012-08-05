@@ -1,6 +1,4 @@
-#include <cmath>
-#include <GL/glu.h>
-#include <cstring>
+#include <GL/gl.h>
 #include <iostream>
 
 #include "actor_dancingparticles.h"
@@ -94,7 +92,7 @@ void  init_parameters();
 void changep();
 void allocParts();
 
-void loadepic(char *file);
+void loadepic(const char *file);
 
 class beatdetector
 {

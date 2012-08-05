@@ -22,22 +22,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <config.h>
+#include "config.h"
+#include "gettext.h"
 #include <libvisual/libvisual.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
 #include <math.h>
-#include <gettext.h>
-
-#include <time.h>
-
 #include <GL/gl.h>
 
-const VisPluginInfo *get_plugin_info (int *count);
+VISUAL_PLUGIN_API_VERSION_VALIDATOR
 
 typedef struct {
 	int			 initialized;
@@ -57,7 +48,7 @@ typedef struct {
 
 	float			 gdata[256];
 
-	VisTimer		 timer;
+	VisTimer		*timer;
 
 	/* Config */
 	int			 num_stars;
@@ -69,7 +60,7 @@ typedef struct {
 static int lv_madspin_init (VisPluginData *plugin);
 static int lv_madspin_cleanup (VisPluginData *plugin);
 static int lv_madspin_requisition (VisPluginData *plugin, int *width, int *height);
-static int lv_madspin_dimension (VisPluginData *plugin, VisVideo *video, int width, int height);
+static int lv_madspin_resize (VisPluginData *plugin, int width, int height);
 static int lv_madspin_events (VisPluginData *plugin, VisEventQueue *events);
 static VisPalette *lv_madspin_palette (VisPluginData *plugin);
 static int lv_madspin_render (VisPluginData *plugin, VisVideo *video, VisAudio *audio);
@@ -78,19 +69,17 @@ static int  madspin_load_textures (MadspinPrivate *priv);
 static int  madspin_sound (MadspinPrivate *priv, VisAudio *audio);
 static int  madspin_draw (MadspinPrivate *priv, VisVideo *video);
 
-VISUAL_PLUGIN_API_VERSION_VALIDATOR
-
 /* Main plugin stuff */
-const VisPluginInfo *get_plugin_info (int *count)
+const VisPluginInfo *get_plugin_info (void)
 {
-	static VisActorPlugin actor[] = {{
+	static VisActorPlugin actor = {
 		.requisition = lv_madspin_requisition,
 		.palette = lv_madspin_palette,
 		.render = lv_madspin_render,
 		.vidoptions.depth = VISUAL_VIDEO_DEPTH_GL
-	}};
+	};
 
-	static VisPluginInfo info[] = {{
+	static VisPluginInfo info = {
 		.type = VISUAL_PLUGIN_TYPE_ACTOR,
 
 		.plugname = "madspin",
@@ -105,19 +94,17 @@ const VisPluginInfo *get_plugin_info (int *count)
 		.cleanup = lv_madspin_cleanup,
 		.events = lv_madspin_events,
 
-		.plugin = VISUAL_OBJECT (&actor[0])
-	}};
+		.plugin = VISUAL_OBJECT (&actor)
+	};
 
-	*count = sizeof (info) / sizeof (*info);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_RED_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_GREEN_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_BLUE_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_DEPTH_SIZE, 16);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_RGBA, 1);
 
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_RED_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_GREEN_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_BLUE_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_DEPTH_SIZE, 16);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_RGBA, 1);
-
-	return info;
+	return &info;
 }
 
 static int lv_madspin_init (VisPluginData *plugin)
@@ -132,7 +119,7 @@ static int lv_madspin_init (VisPluginData *plugin)
 	};
 
 #if ENABLE_NLS
-	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
 #endif
 
 	priv = visual_mem_new0 (MadspinPrivate, 1);
@@ -148,7 +135,7 @@ static int lv_madspin_init (VisPluginData *plugin)
 	priv->total = 0;
 	priv->frame = 0;
 
-	visual_timer_init (&priv->timer);
+	priv->timer = visual_timer_new ();
 
 	visual_param_container_add_many (paramcontainer, params);
 
@@ -162,10 +149,12 @@ static int lv_madspin_init (VisPluginData *plugin)
 static int lv_madspin_cleanup (VisPluginData *plugin)
 {
 	MadspinPrivate *priv = visual_object_get_private (VISUAL_OBJECT (plugin));
-	
+
 	if (priv->initialized == TRUE) {
-		visual_object_unref (VISUAL_OBJECT (priv->texture_images[0]));
-		visual_object_unref (VISUAL_OBJECT (priv->texture_images[1]));
+		visual_timer_free (priv->timer);
+
+		visual_video_unref (priv->texture_images[0]);
+		visual_video_unref (priv->texture_images[1]);
 
 		glDeleteTextures (2, priv->textures);
 	}
@@ -200,7 +189,7 @@ static void bind_texture (GLuint texture, VisVideo *image)
 	glBindTexture (GL_TEXTURE_2D, texture);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D (GL_TEXTURE_2D, 0, 3, image->width, image->height, 0,
+	glTexImage2D (GL_TEXTURE_2D, 0, 3, visual_video_get_width (image), visual_video_get_height (image), 0,
 		      GL_RGB, GL_UNSIGNED_BYTE, visual_video_get_pixels (image));
 }
 
@@ -232,10 +221,8 @@ static void lv_madspin_setup_gl (VisPluginData *plugin)
 	bind_texture (priv->textures[1], priv->texture_images[1]);
 }
 
-static int lv_madspin_dimension (VisPluginData *plugin, VisVideo *video, int width, int height)
+static int lv_madspin_resize (VisPluginData *plugin, int width, int height)
 {
-	visual_video_set_dimension (video, width, height);
-
 	glViewport (0, 0, width, height);
 
 	lv_madspin_setup_gl (plugin);
@@ -252,8 +239,7 @@ static int lv_madspin_events (VisPluginData *plugin, VisEventQueue *events)
 	while (visual_event_queue_poll (events, &ev)) {
 		switch (ev.type) {
 			case VISUAL_EVENT_RESIZE:
-				lv_madspin_dimension (plugin, ev.event.resize.video,
-						ev.event.resize.width, ev.event.resize.height);
+				lv_madspin_resize (plugin, ev.event.resize.width, ev.event.resize.height);
 				break;
 
 			case VISUAL_EVENT_PARAM:
@@ -289,13 +275,13 @@ static int lv_madspin_render (VisPluginData *plugin, VisVideo *video, VisAudio *
 
 static int madspin_load_textures (MadspinPrivate *priv)
 {
-	priv->texture_images[0] = visual_bitmap_load_new_video (STAR_DIR "/star1.bmp");
+	priv->texture_images[0] = visual_bitmap_load (STAR_DIR "/star1.bmp");
 	if (!priv->texture_images[0]) {
 		visual_log (VISUAL_LOG_ERROR, "Failed to load first texture");
 		return -1;
 	}
 
-	priv->texture_images[1] = visual_bitmap_load_new_video (STAR_DIR "/star2.bmp");
+	priv->texture_images[1] = visual_bitmap_load (STAR_DIR "/star2.bmp");
 	if (!priv->texture_images[1]) {
 		visual_log (VISUAL_LOG_ERROR, "Failed to load second texture");
 		return -1;
@@ -307,18 +293,21 @@ static int madspin_load_textures (MadspinPrivate *priv)
 static int madspin_sound (MadspinPrivate *priv, VisAudio *audio)
 {
 	int i;
-	VisBuffer buffer;
-	VisBuffer pcmb;
+	VisBuffer* buffer;
+	VisBuffer* pcmb;
 	float freq[256];
 	float pcm[256];
 
-	visual_buffer_set_data_pair (&buffer, freq, sizeof (freq));
-	visual_buffer_set_data_pair (&pcmb, pcm, sizeof (pcm));
+	buffer = visual_buffer_new_wrap_data (freq, sizeof (freq));
+	pcmb   = visual_buffer_new_wrap_data (pcm, sizeof (pcm));
 
-	visual_audio_get_sample_mixed_simple (audio, &pcmb, 2, VISUAL_AUDIO_CHANNEL_LEFT,
+	visual_audio_get_sample_mixed_simple (audio, pcmb, 2, VISUAL_AUDIO_CHANNEL_LEFT,
 			VISUAL_AUDIO_CHANNEL_RIGHT);
 
-	visual_audio_get_spectrum_for_sample (&buffer, &pcmb, TRUE);
+	visual_audio_get_spectrum_for_sample (buffer, pcmb, TRUE);
+
+	visual_buffer_unref (buffer);
+	visual_buffer_unref (pcmb);
 
 	/* Make our data from the freq data */
 	for (i = 0; i < 256; i++) {
@@ -350,7 +339,7 @@ static int madspin_draw (MadspinPrivate *priv, VisVideo *video)
 	int ampl = 200;
 	float elapsed_time;
 
-	visual_timer_start (&priv->timer);
+	visual_timer_start (priv->timer);
 
 	for (i = 1; i < 50; i++)
 		priv->total += priv->gdata[i];
@@ -460,7 +449,7 @@ static int madspin_draw (MadspinPrivate *priv, VisVideo *video)
 
 	glLoadIdentity ();
 
-	elapsed_time = (float) visual_timer_elapsed_usecs (&priv->timer) / 1000000;
+	elapsed_time = (float) visual_timer_elapsed_usecs (priv->timer) / 1000000;
 
 	if (elapsed_time < 0)
 		elapsed_time = 0;

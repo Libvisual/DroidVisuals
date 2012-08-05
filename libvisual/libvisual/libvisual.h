@@ -37,7 +37,6 @@
 #include <libvisual/lv_time.h>
 #include <libvisual/lv_color.h>
 #include <libvisual/lv_param.h>
-#include <libvisual/lv_config.h>
 #include <libvisual/lv_cpu.h>
 #include <libvisual/lv_bin.h>
 #include <libvisual/lv_event.h>
@@ -57,11 +56,7 @@
 #include <libvisual/lv_bmp.h>
 #include <libvisual/lv_random.h>
 #include <libvisual/lv_collection.h>
-#include <libvisual/lv_hashmap.h>
-#include <libvisual/lv_cache.h>
-#include <libvisual/lv_ringbuffer.h>
 #include <libvisual/lv_rectangle.h>
-#include <libvisual/lv_thread.h>
 #include <libvisual/lv_gl.h>
 #include <libvisual/lv_math.h>
 #include <libvisual/lv_os.h>

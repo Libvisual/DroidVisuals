@@ -3,10 +3,8 @@
  * Copyright (C) 2004, 2005, 2006 Dennis Smit <ds@nerds-incorporated.org>
  *
  * Authors: Dennis Smit <ds@nerds-incorporated.org>
- *	    Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and
- *	    4Front Technologies
- *
- * $Id: actor_lv_gltest.c,v 1.27 2006/03/02 23:50:06 synap Exp $
+ *          Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and
+ *            4Front Technologies
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -23,24 +21,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <math.h>
-#include <gettext.h>
-
+#include "config.h"
+#include "gettext.h"
+#include <libvisual/libvisual.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <libvisual/libvisual.h>
+VISUAL_PLUGIN_API_VERSION_VALIDATOR
 
 #define BARS	16
-
-const VisPluginInfo *get_plugin_info (int *count);
 
 static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
@@ -59,7 +48,7 @@ typedef struct {
 static int lv_gltest_init (VisPluginData *plugin);
 static int lv_gltest_cleanup (VisPluginData *plugin);
 static int lv_gltest_requisition (VisPluginData *plugin, int *width, int *height);
-static int lv_gltest_dimension (VisPluginData *plugin, VisVideo *video, int width, int height);
+static int lv_gltest_resize (VisPluginData *plugin, int width, int height);
 static int lv_gltest_events (VisPluginData *plugin, VisEventQueue *events);
 static VisPalette *lv_gltest_palette (VisPluginData *plugin);
 static int lv_gltest_render (VisPluginData *plugin, VisVideo *video, VisAudio *audio);
@@ -69,24 +58,22 @@ static void draw_rectangle (GLtestPrivate *priv, GLfloat x1, GLfloat y1, GLfloat
 static void draw_bar (GLtestPrivate *priv, GLfloat x_offset, GLfloat z_offset, GLfloat height, GLfloat red, GLfloat green, GLfloat blue);
 static void draw_bars (GLtestPrivate *priv);
 
-VISUAL_PLUGIN_API_VERSION_VALIDATOR
-
 /* Main plugin stuff */
-const VisPluginInfo *get_plugin_info (int *count)
+const VisPluginInfo *get_plugin_info (void)
 {
-	static VisActorPlugin actor[] = {{
+	static VisActorPlugin actor = {
 		.requisition = lv_gltest_requisition,
 		.palette = lv_gltest_palette,
 		.render = lv_gltest_render,
 		.vidoptions.depth = VISUAL_VIDEO_DEPTH_GL
-	}};
+	};
 
-	static VisPluginInfo info[] = {{
+	static VisPluginInfo info = {
 		.type = VISUAL_PLUGIN_TYPE_ACTOR,
 
 		.plugname = "lv_gltest",
 		.name = "libvisual GL analyser",
-		.author = N_("Original by:  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies, Port by: Dennis Smit <ds@nerds-incorporated.org>"),
+		.author = N_("Original by: Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies, Port by: Dennis Smit <ds@nerds-incorporated.org>"),
 		.version = "0.1",
 		.about = N_("Libvisual GL analyzer plugin"),
 		.help =  N_("This plugin shows an openGL bar analyzer like the xmms one"),
@@ -96,19 +83,17 @@ const VisPluginInfo *get_plugin_info (int *count)
 		.cleanup = lv_gltest_cleanup,
 		.events = lv_gltest_events,
 
-		.plugin = VISUAL_OBJECT (&actor[0])
-	}};
+		.plugin = VISUAL_OBJECT (&actor)
+	};
 
-	*count = sizeof (info) / sizeof (*info);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_RED_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_GREEN_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_BLUE_SIZE, 5);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_DEPTH_SIZE, 16);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
+	VISUAL_VIDEO_ATTR_OPTIONS_GL_ENTRY(actor.vidoptions, VISUAL_GL_ATTRIBUTE_RGBA, 1);
 
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_RED_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_GREEN_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_BLUE_SIZE, 5);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_DEPTH_SIZE, 16);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
-	VISUAL_VIDEO_ATTRIBUTE_OPTIONS_GL_ENTRY(actor[0].vidoptions, VISUAL_GL_ATTRIBUTE_RGBA, 1);
-
-	return info;
+	return &info;
 }
 
 static int lv_gltest_init (VisPluginData *plugin)
@@ -124,7 +109,7 @@ static int lv_gltest_init (VisPluginData *plugin)
 	int x, y;
 
 #if ENABLE_NLS
-	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
 #endif
 
 	priv = visual_mem_new0 (GLtestPrivate, 1);
@@ -193,11 +178,9 @@ static int lv_gltest_requisition (VisPluginData *plugin, int *width, int *height
 	return 0;
 }
 
-static int lv_gltest_dimension (VisPluginData *plugin, VisVideo *video, int width, int height)
+static int lv_gltest_resize (VisPluginData *plugin, int width, int height)
 {
 	GLfloat ratio;
-
-	visual_video_set_dimension (video, width, height);
 
 	ratio = (GLfloat) width / (GLfloat) height;
 
@@ -222,8 +205,7 @@ static int lv_gltest_events (VisPluginData *plugin, VisEventQueue *events)
 	while (visual_event_queue_poll (events, &ev)) {
 		switch (ev.type) {
 			case VISUAL_EVENT_RESIZE:
-				lv_gltest_dimension (plugin, ev.event.resize.video,
-						ev.event.resize.width, ev.event.resize.height);
+				lv_gltest_resize (plugin, ev.event.resize.width, ev.event.resize.height);
 				break;
 
 			case VISUAL_EVENT_PARAM:
@@ -254,22 +236,25 @@ static VisPalette *lv_gltest_palette (VisPluginData *plugin)
 static int lv_gltest_render (VisPluginData *plugin, VisVideo *video, VisAudio *audio)
 {
 	GLtestPrivate *priv = visual_object_get_private (VISUAL_OBJECT (plugin));
-	VisBuffer buffer;
-	VisBuffer pcmb;
+	VisBuffer *buffer;
+	VisBuffer *pcmb;
 	float freq[256];
 	float pcm[256];
 	int i,c;
 	int y;
 	float ff;
 
-	visual_buffer_set_data_pair (&buffer, freq, sizeof (freq));
-	visual_buffer_set_data_pair (&pcmb, pcm, sizeof (pcm));
+	buffer = visual_buffer_new_wrap_data (freq, sizeof (freq));
+	pcmb   = visual_buffer_new_wrap_data (pcm, sizeof (pcm));
 
-	visual_audio_get_sample_mixed_simple (audio, &pcmb, 2,
+	visual_audio_get_sample_mixed_simple (audio, pcmb, 2,
 			VISUAL_AUDIO_CHANNEL_LEFT,
 			VISUAL_AUDIO_CHANNEL_RIGHT);
 
-	visual_audio_get_spectrum_for_sample (&buffer, &pcmb, TRUE);
+	visual_audio_get_spectrum_for_sample (buffer, pcmb, TRUE);
+
+	visual_buffer_unref (buffer);
+	visual_buffer_unref (pcmb);
 
 	for (y = BARS - 1; y > 0; y--)
 	{

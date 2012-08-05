@@ -1,10 +1,8 @@
 /* Libvisual-plugins - Standard plugins for libvisual
- * 
+ *
  * Copyright (C) 2004, 2005, 2006 Dennis Smit <ds@nerds-incorporated.org>
  *
  * Authors: Dennis Smit <ds@nerds-incorporated.org>
- *
- * $Id: actor_gstreamer.c,v 1.9 2006/01/27 20:19:16 synap Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -21,22 +19,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <gettext.h>
-
+#include "config.h"
+#include "gettext.h"
 #include <libvisual/libvisual.h>
-
 #include <gst/gst.h>
 
-#define BARS 16
+VISUAL_PLUGIN_API_VERSION_VALIDATOR
 
-const VisPluginInfo *get_plugin_info (int *count);
+#define BARS 16
 
 typedef struct {
 	VisVideo *old_video;
@@ -49,23 +39,21 @@ static void have_data (GstElement *sink, GstBuffer *buffer, gpointer data);
 static int act_gstreamer_init (VisPluginData *plugin);
 static int act_gstreamer_cleanup (VisPluginData *plugin);
 static int act_gstreamer_requisition (VisPluginData *plugin, int *width, int *height);
-static int act_gstreamer_dimension (VisPluginData *plugin, VisVideo *video, int width, int height);
+static int act_gstreamer_resize (VisPluginData *plugin, int width, int height);
 static int act_gstreamer_events (VisPluginData *plugin, VisEventQueue *events);
 static VisPalette *act_gstreamer_palette (VisPluginData *plugin);
 static int act_gstreamer_render (VisPluginData *plugin, VisVideo *video, VisAudio *audio);
 
-VISUAL_PLUGIN_API_VERSION_VALIDATOR
-
-const VisPluginInfo *get_plugin_info (int *count)
+const VisPluginInfo *get_plugin_info (void)
 {
-	static VisActorPlugin actor[] = {{
+	static VisActorPlugin actor = {
 		.requisition = act_gstreamer_requisition,
 		.palette = act_gstreamer_palette,
 		.render = act_gstreamer_render,
 		.vidoptions.depth = VISUAL_VIDEO_DEPTH_24BIT
-	}};
+	};
 
-	static VisPluginInfo info[] = {{
+	static VisPluginInfo info = {
 		.type = VISUAL_PLUGIN_TYPE_ACTOR,
 
 		.plugname = "gstreamer",
@@ -80,12 +68,10 @@ const VisPluginInfo *get_plugin_info (int *count)
 		.cleanup = act_gstreamer_cleanup,
 		.events = act_gstreamer_events,
 
-		.plugin = VISUAL_OBJECT (&actor[0])
-	}};
+		.plugin = VISUAL_OBJECT (&actor)
+	};
 
-	*count = sizeof (info) / sizeof (*info);
-
-	return info;
+	return &info;
 }
 
 static int act_gstreamer_init (VisPluginData *plugin)
@@ -117,10 +103,8 @@ static int act_gstreamer_requisition (VisPluginData *plugin, int *width, int *he
 	return 0;
 }
 
-static int act_gstreamer_dimension (VisPluginData *plugin, VisVideo *video, int width, int height)
+static int act_gstreamer_resize (VisPluginData *plugin, int width, int height)
 {
-	visual_video_set_dimension (video, width, height);
-
 	return 0;
 }
 
@@ -131,8 +115,7 @@ static int act_gstreamer_events (VisPluginData *plugin, VisEventQueue *events)
 	while (visual_event_queue_poll (events, &ev)) {
 		switch (ev.type) {
 			case VISUAL_EVENT_RESIZE:
-				act_gstreamer_dimension (plugin, ev.event.resize.video,
-						ev.event.resize.width, ev.event.resize.height);
+				act_gstreamer_resize (plugin, ev.event.resize.width, ev.event.resize.height);
 				break;
 
 

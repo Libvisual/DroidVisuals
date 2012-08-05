@@ -15,11 +15,17 @@ SET(input_pulseaudio_SOURCES
 )
 
 ADD_LIBRARY(input_pulseaudio MODULE ${input_pulseaudio_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(input_pulseaudio PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
+
+FIND_PACKAGE(Threads)
 
 TARGET_LINK_LIBRARIES(input_pulseaudio
   ${LIBVISUAL_LIBRARIES}
   ${PULSE_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 INSTALL(TARGETS input_pulseaudio LIBRARY DESTINATION ${LV_INPUT_PLUGIN_DIR})

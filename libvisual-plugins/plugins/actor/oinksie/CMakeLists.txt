@@ -43,10 +43,14 @@ SET(actor_oinksie_SOURCES
 )
 
 ADD_LIBRARY(actor_oinksie MODULE ${actor_oinksie_SOURCES})
-#-avoid-version
+
+SET_TARGET_PROPERTIES(actor_oinksie PROPERTIES
+  LINK_FLAGS -Wl,--unresolved-symbols,ignore-in-shared-libs
+)
 
 TARGET_LINK_LIBRARIES(actor_oinksie
   ${LIBVISUAL_LIBRARIES}
+  m
 )
 
 INSTALL(TARGETS actor_oinksie LIBRARY DESTINATION ${LV_ACTOR_PLUGIN_DIR})
