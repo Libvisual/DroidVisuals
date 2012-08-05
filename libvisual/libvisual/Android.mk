@@ -19,10 +19,8 @@ LOCAL_LDLIBS    := -lm -ldl -llog
 #LOCAL_LDLIBS += -L$(call host-path, $(LOCAL_PATH))/$(TARGET_ARCH_ABI) -landprof
 #LOCAL_CFLAGS += -pg -DVISUAL_HAVE_PROFILING -fno-omit-frame-pointer -fno-function-sections
 
-PRIV := private/lv_video_convert.c  private/lv_video_fill.c  private/lv_video_scale.c
-
 LOCAL_SRC_FILES := $(PRIV) $(addprefix /, $(notdir $(wildcard $(LOCAL_PATH)/*.c) $(wildcard $(LOCAL_PATH)/*.cpp)))
-LOCAL_CFLAGS    += $(ARCH_CFLAGS)
+LOCAL_CFLAGS    += $(ARCH_CFLAGS) -fexceptions
 
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
     LOCAL_ARM_NEON  := true

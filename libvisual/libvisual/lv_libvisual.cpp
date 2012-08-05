@@ -31,7 +31,7 @@
 #include "lv_param.h"
 #include "lv_util.h"
 
-#include "gettext.h"
+//#include "gettext.h"
 
 extern "C" {
   void visual_alpha_blend_initialize (void);
@@ -123,8 +123,8 @@ namespace LV
       visual_log (VISUAL_LOG_INFO, "Starting Libvisual %s", get_version ().c_str ());
 
 #if ENABLE_NLS
-      bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
-      bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+      //bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
+      //bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 #endif
 
       // Initialize CPU caps

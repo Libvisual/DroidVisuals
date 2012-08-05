@@ -25,10 +25,11 @@
 #include "lv_error.h"
 #include "lv_log.h"
 #include "lv_checks.h"
-#include "gettext.h"
+//#include "gettext.h"
 #include <stdlib.h>
 #include <signal.h>
 
+#define N_(n) n
 
 static const char *__lv_error_human_readable[] = {
 	[VISUAL_OK] =					N_("There was no error"),
