@@ -2,6 +2,7 @@
 # Additions v0.2 (c) 2012 made by Scott Sibley <sisibley@gmail.com>
 
 
+
 APPNAME = DroidVisualsActivity
 ACTIVITY = DroidVisualsActivity
 TARGET = android-15
