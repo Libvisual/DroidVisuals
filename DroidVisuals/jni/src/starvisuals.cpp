@@ -33,7 +33,7 @@
 
 // Initial plugins. Preferences should override these.
 #define MORPH "tentacle"
-#define ACTOR "plazma"
+#define ACTOR "lv_gltest"
 #define INPUT "debug"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
@@ -1586,7 +1586,7 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_visualsQuit(JN
 void app_main(int w, int h, const char *actor_, const char *input_, const char *morph_)
 {
 
-    usleep(33333); 
+    usleep(333333); 
     int depthflag;
     VisVideoDepth depth;
 
@@ -1661,7 +1661,6 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     }
     v.bin->realize();
     v.bin->sync(false);
-    v.bin->depth_changed();
 
     pthread_mutex_init(&v.mutex, NULL);
 
@@ -1709,9 +1708,10 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
     void*              pixels;
     int                ret;
     int depthflag;
-    VisVideoDepth depth;
+    static VisVideoDepth depth;
     LV::VideoPtr vid;
 
+    pthread_mutex_lock(&v.mutex);
 
     if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
         LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
@@ -1725,44 +1725,41 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
 
-    pthread_mutex_lock(&v.mutex);
-
-    if(v.bin->depth_changed() || 
+    if(v.bin->depth_changed()  || 
         ((int)info.width != v.video->get_width() || 
         (int)info.height != v.video->get_height()) ) 
     {
-        if(v.video->has_allocated_buffer())
-            v.video->free_buffer();
 
         v.pluginIsGL = (visual_bin_get_depth (v.bin) == VISUAL_VIDEO_DEPTH_GL);
         depthflag = v.bin->get_depth();
         depth = visual_video_depth_get_highest(depthflag);
         
-        v.video->unref();
-        v.video = LV::Video::create(info.width, info.height, depth);
-        v.bin->set_video(v.video);
+        if(v.video->has_allocated_buffer())
+            v.video->free_buffer();
+
+        v.video->set_dimension(info.width, info.height);
+        v.video->set_depth(depth);
+        if(not v.pluginIsGL)
+        {
+            v.video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);
+            v.video->allocate_buffer();
+        }
         v.bin->sync(true);
     }
 
-    if (0 && v.pluginIsGL) {
-        //FIXME
-        //visual_bin_run (v.bin);
-    } else {
+    v.bin->run();
 
-        v.bin->run();
+    if (not v.pluginIsGL ) {
+        vid->convert_depth(v.video);
     }
-
-    vid->convert_depth(v.video);
-    //LV::VideoPtr sub = LV::Video::create_sub(vid, vid->get_extents());
-    //vid->blit(sub, 0, 0, false);
-
-    AndroidBitmap_unlockPixels(env, bitmap);
 
     vid->unref();
 
+    AndroidBitmap_unlockPixels(env, bitmap);
+
     pthread_mutex_unlock(&v.mutex);
 
-    return TRUE;
+    return v.pluginIsGL;
 }
 
 } // extern "C"

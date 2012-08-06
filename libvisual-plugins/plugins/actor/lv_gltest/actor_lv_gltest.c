@@ -24,14 +24,20 @@
 #include "config.h"
 #include "gettext.h"
 #include <libvisual/libvisual.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <GLES/gl.h>
+//#include <GLES/glu.h>
 
 VISUAL_PLUGIN_API_VERSION_VALIDATOR
 
 #define BARS	16
 
 static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
+
+const GLfloat triangleColors[] = {
+1.0f,   0.0f,   0.0f,   0.0f,
+0.0f,   1.0f,   0.0f,   1.0f,
+0.0f,   0.0f,   1.0f,   1.0f
+};
 
 typedef struct {
 	GLfloat y_angle;
@@ -124,7 +130,7 @@ static int lv_gltest_init (VisPluginData *plugin)
 
 	glLoadIdentity ();
 
-	glFrustum (-1, 1, -1, 1, 1.5, 10);
+	//FIXME glFrustum (-1, 1, -1, 1, 1.5, 10);
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity ();
@@ -188,7 +194,7 @@ static int lv_gltest_resize (VisPluginData *plugin, int width, int height)
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
 
-	gluPerspective (45.0, ratio, 0.1, 100.0);
+	//FIXME gluPerspective (45.0, ratio, 0.1, 100.0);
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity ();
@@ -296,41 +302,64 @@ static int lv_gltest_render (VisPluginData *plugin, VisVideo *video, VisAudio *a
 /* Drawing stuff */
 static void draw_rectangle (GLtestPrivate *priv, GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
 {
+    glEnableClientState(GL_VERTEX_ARRAY);
 	if (y1 == y2) {
 
-		glVertex3f (x1, y1, z1);
-		glVertex3f (x2, y1, z1);
-		glVertex3f (x2, y2, z2);
+        const GLfloat vertices[] = {
+            x1, y1, z1,
+            x2, y1, z1,
+            x2, y2, z2,
 
-		glVertex3f (x2, y2, z2);
-		glVertex3f (x1, y2, z2);
-		glVertex3f (x1, y1, z1);
+            x2, y2, z2,
+            x1, y2, z2,
+            x1, y1, z1,
+
+        };
+        glVertexPointer(3, GL_FLOAT, 0, vertices);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
+        
 	} else {
-		glVertex3f (x1, y1, z1);
-		glVertex3f (x2, y1, z2);
-		glVertex3f (x2, y2, z2);
+        const GLfloat vertices[] = {
+            x1, y1, z1,
+            x2, y1, z2,
+            x2, y2, z2,
 
-		glVertex3f (x2, y2, z2);
-		glVertex3f (x1, y2, z1);
-		glVertex3f (x1, y1, z1);
+            x2, y2, z2,
+            x1, y2, z1,
+            x1, y1, z1,
+
+        };
+        glVertexPointer(3, GL_FLOAT, 0, vertices);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
 	}
+    glDisableClientState(GL_VERTEX_ARRAY); 
 }
 
 static void draw_bar (GLtestPrivate *priv, GLfloat x_offset, GLfloat z_offset, GLfloat height, GLfloat red, GLfloat green, GLfloat blue)
 {
 	GLfloat width = 0.1;
 
-	glColor3f (red,green,blue);
+    const GLfloat colors[] = {
+        red, green, blue,
+        0.5 * red, 0.5 * green, 0.5 * blue,
+        0.25 * red, 0.25 * green, 0.25 * blue
+        
+    };
+    glEnableClientState(GL_COLOR_ARRAY); 
+
+    glColorPointer(3, GL_FLOAT, 0, colors);
+	//glColor3f (red,green,blue);
 	draw_rectangle (priv, x_offset, height, z_offset, x_offset + width, height, z_offset + 0.1);
 	draw_rectangle (priv, x_offset, 0, z_offset, x_offset + width, 0, z_offset + 0.1);
 
-	glColor3f (0.5 * red, 0.5 * green, 0.5 * blue);
+	//glColor3f (0.5 * red, 0.5 * green, 0.5 * blue);
 	draw_rectangle (priv, x_offset, 0.0, z_offset + 0.1, x_offset + width, height, z_offset + 0.1);
 	draw_rectangle (priv, x_offset, 0.0, z_offset, x_offset + width, height, z_offset );
 
-	glColor3f (0.25 * red, 0.25 * green, 0.25 * blue);
+	//glColor3f (0.25 * red, 0.25 * green, 0.25 * blue);
 	draw_rectangle (priv, x_offset, 0.0, z_offset , x_offset, height, z_offset + 0.1);
 	draw_rectangle (priv, x_offset + width, 0.0, z_offset , x_offset + width, height, z_offset + 0.1);
+    glDisableClientState(GL_COLOR_ARRAY); 
 }
 
 static void draw_bars (GLtestPrivate *priv)
@@ -347,7 +376,7 @@ static void draw_bars (GLtestPrivate *priv)
 	glRotatef (priv->y_angle,0.0,1.0,0.0);
 	glRotatef (priv->z_angle,0.0,0.0,1.0);
 
-	glBegin (GL_TRIANGLES);
+	//glBegin (GL_TRIANGLES);
 	for (y = 0; y < 16; y++)
 	{
 		z_offset = -1.6 + ((15 - y) * 0.2);
@@ -361,7 +390,7 @@ static void draw_bars (GLtestPrivate *priv)
 			draw_bar (priv, x_offset, z_offset, priv->heights[y][x] * 0.2, r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
 		}
 	}
-	glEnd ();
+	//glEnd ();
 
 	glPopMatrix ();
 }

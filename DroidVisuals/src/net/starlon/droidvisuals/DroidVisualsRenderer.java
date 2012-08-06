@@ -107,6 +107,7 @@ final class Visual {
     private Paint mPaint;
     private Canvas mCanvas;
     private GL10 mGL10 = null;
+    private boolean mPluginIsGL;
 
     private FloatBuffer mVertexBuffer;   // buffer holding the vertices
     private float vertices[] = {
@@ -262,9 +263,12 @@ final class Visual {
         else
         {
             mBitmap.eraseColor(Color.BLACK);
-            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+            mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
         }
 
+        
+        if(mPluginIsGL)
+            return;
 
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
@@ -349,6 +353,8 @@ final class Visual {
         synchronized(mActivity.mSynch)
         {
             updatePixels();
+            if(mPluginIsGL)
+                return;
         }
 
         // Clear the surface
