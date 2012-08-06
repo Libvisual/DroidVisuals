@@ -77,7 +77,10 @@ public class DroidVisualsRenderer implements Renderer {
 
         TimerTask task = new TimerTask() {
             public void run() {
-                mActivity.warn(mStats.getText(), true);
+                synchronized(mActivity.mSynch)
+                {
+                    mActivity.warn(mStats.getText(), true);
+                }
             }
         };
 
@@ -259,9 +262,7 @@ final class Visual {
         else
         {
             mBitmap.eraseColor(Color.BLACK);
-            synchronized(mActivity.mSynch) {
-                NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
-            }
+            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
         }
 
 
@@ -345,7 +346,10 @@ final class Visual {
         if(mGL10 == null)
             return;
         // Draw
-        updatePixels();
+        synchronized(mActivity.mSynch)
+        {
+            updatePixels();
+        }
 
         // Clear the surface
         mGL10.glClearColorx(0, 0, 0, 0);

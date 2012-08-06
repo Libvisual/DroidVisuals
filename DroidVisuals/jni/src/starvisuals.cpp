@@ -69,10 +69,33 @@ struct {
     int is_active;
 } v;
 
-static int my_log_handler (int error, void *priv)
+static int my_error_handler (int error, void *priv)
 {
-    LOGI(visual_error_to_string(error));
+    LOGE(visual_error_to_string(error));
     return 0;
+}
+
+static void my_log_handler(VisLogSeverity severity, const char *msg, const VisLogSource *source, void *priv)
+{
+    switch(severity)
+    {
+        case VISUAL_LOG_DEBUG:
+            LOGI("lvDEBUG: (%s) line # %d (%s) : %s", source->file, source->line, source->func, msg);
+            break;
+        case VISUAL_LOG_INFO:
+            LOGI("lvINFO: %s", msg);
+            break;
+        case VISUAL_LOG_WARNING:
+            LOGW("lvWARNING: %s", msg);
+            break;
+        case VISUAL_LOG_ERROR:
+            LOGE("lvERROR: (%s) line # %d (%s) : %s\n", source->file, source->line, source->func, msg);
+            break;
+        case VISUAL_LOG_CRITICAL:
+            LOGE("lvCRITICAL: (%s) line # %d (%s) : %s\n", source->file, source->line, source->func, msg);
+            break;
+    }
+
 }
 
 void v_cycleActor (int prev)
@@ -1013,7 +1036,7 @@ LV::PluginRef &get_actor(int index)
 int get_actor_index()
 {
     LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_ACTOR);
-    for(int i = 0; i < list.size(); i++)
+    for(unsigned int i = 0; i < list.size(); i++)
     {
         LV::PluginRef ref = list[i];
         if(ref.info->plugname && !strcmp(v.actor_name, ref.info->plugname))
@@ -1406,11 +1429,10 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
 // For fallback audio source.
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_uploadAudio(JNIEnv * env, jobject  obj, jshortArray data)
 {
-    int i;
     jshort *pcm;
     jsize len = env->GetArrayLength(data);
     pcm = env->GetShortArrayElements(data, NULL);
-    for(i = 0; i < (int)len && i < (int)pcm_ref.size / sizeof(int16_t); i++)
+    for(unsigned int i = 0; i < (unsigned int)len && i < (int)pcm_ref.size / sizeof(int16_t); i++)
     {
         pcm_ref.pcm_data[i] = pcm[i];
     }
@@ -1547,9 +1569,9 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_screenResize(J
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_keyboardEvent(JNIEnv * env, jobject  obj, jint x, jint y)
 {
     VisEventQueue *eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(visual_bin_get_actor(v.bin)));
-    VisKey keysym;
+    VisKey keysym = (VisKey)0;
     int keymod = 0;
-    VisKeyState state;
+    VisKeyState state = (VisKeyState)0;
     VisEvent *event = visual_event_new_keyboard(keysym, keymod, state);
     eventqueue->add(*event);
 }
@@ -1571,7 +1593,11 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     if(!visual_is_initialized())
     {
         visual_log_set_verbosity (VISUAL_LOG_DEBUG);
-        visual_error_set_handler(my_log_handler, NULL);
+        visual_error_set_handler(my_error_handler, NULL);
+        visual_log_set_handler(VISUAL_LOG_DEBUG, my_log_handler, NULL);
+        visual_log_set_handler(VISUAL_LOG_WARNING, my_log_handler, NULL );
+        visual_log_set_handler(VISUAL_LOG_ERROR, my_log_handler, NULL );
+        visual_log_set_handler(VISUAL_LOG_CRITICAL, my_log_handler, NULL );
         visual_init (0, NULL);
         memset(&v, 0, sizeof(v));
         memset(&pcm_ref, 0, sizeof(pcm_ref));
