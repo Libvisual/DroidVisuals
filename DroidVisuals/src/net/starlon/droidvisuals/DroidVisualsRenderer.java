@@ -259,7 +259,9 @@ final class Visual {
         else
         {
             mBitmap.eraseColor(Color.BLACK);
-            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+            synchronized(mActivity.mSynch) {
+                NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+            }
         }
 
 

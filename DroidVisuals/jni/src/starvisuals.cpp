@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include <jni.h>
 #include <time.h>
@@ -60,7 +61,7 @@ struct {
     LV::VideoPtr   video;
     //VisPalette  *pal;
     LV::Bin     *bin;
-    //VisMutex *mutex;
+    pthread_mutex_t mutex;
     const char *actor_name;
     const char *morph_name;
     const char *input_name;
@@ -68,29 +69,11 @@ struct {
     int is_active;
 } v;
 
-/*
-static void my_log_handler (VisLogSeverity severity, const char *msg, const VisLogSource *source, void *priv)
+static int my_log_handler (int error, void *priv)
 {
-    switch(severity)
-    {
-        case VISUAL_LOG_DEBUG:
-            LOGI("lvDEBUG: (%s) line # %d (%s) : %s\n", source->file, source->line, source->func, msg);
-            break;
-        case VISUAL_LOG_INFO:
-            LOGI("lvINFO: %s: %s\n", __lv_progname, msg);
-            break;
-        case VISUAL_LOG_WARNING:
-            LOGW("lvWARNING: %s: %s\n", __lv_progname, msg);
-            break;
-        case VISUAL_LOG_ERROR:
-            LOGE("lvERROR: (%s) line # %d (%s) : %s\n", source->file, source->line, source->func, msg);
-            break;
-        case VISUAL_LOG_CRITICAL:
-            LOGE("lvCRITICAL: (%s) line # %d (%s) : %s\n", source->file, source->line, source->func, msg);
-            break;
-    }
+    LOGI(visual_error_to_string(error));
+    return 0;
 }
-*/
 
 void v_cycleActor (int prev)
 {
@@ -661,12 +644,12 @@ static void finalizeMorph(const char *morph)
 #if 0
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleMorph(JNIEnv *env, jobject obj, jint prev)
 {
-    //visual_mutex_lock(v.mutex);
+    pthread_mutex_lock(&v.mutex);
 
     v_cycleMorph(prev);
     finalizeMorph(v.morph_name);
 
-    //visual_mutex_unlock(v.mutex);
+    pthread_mutex_unlock(&v.mutex);
 
     return get_morph_index();
 }
@@ -1042,9 +1025,9 @@ int get_actor_index()
 
 void finalizeActor(const char *actor)
 {
-    //visual_mutex_lock(v.mutex);
+    pthread_mutex_lock(&v.mutex);
     v.bin->switch_actor((char *)actor);
-    //visual_mutex_unlock(v.mutex);
+    pthread_mutex_unlock(&v.mutex);
 }
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev)
@@ -1484,6 +1467,8 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_resizePCM(jint
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSwitch(JNIEnv * env, jobject  obj, jint prev)
 {
 
+    pthread_mutex_lock(&v.mutex);
+
     VisMorph *bin_morph = visual_bin_get_morph(v.bin);
     const char *morph = v.morph_name;
 
@@ -1504,11 +1489,11 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
     visual_log(VISUAL_LOG_INFO, "Switching actors %s -> %s", morph, v.morph_name);
 
     v.morph_name = "slide_up";
-    //visual_mutex_lock(v.mutex);
+    v_cycleActor(prev);
     //v.bin->set_morph(v.morph_name);
 
     v.bin->switch_actor(v.actor_name);
-    //visual_mutex_unlock(v.mutex);
+    pthread_mutex_unlock(&v.mutex);
     return TRUE;
 }
 
@@ -1572,8 +1557,6 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_keyboardEvent(
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_visualsQuit(JNIEnv * env, jobject  obj, jboolean toExit)
 {
 
-    //visual_mutex_free(v.mutex);
-
     if(visual_is_initialized())
         visual_quit();
 }
@@ -1587,15 +1570,8 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
 
     if(!visual_is_initialized())
     {
-        //setenv("LVSHOWBEATS", "1", 1);
         visual_log_set_verbosity (VISUAL_LOG_DEBUG);
-/*
-        visual_log_set_handler (VISUAL_LOG_DEBUG, my_log_handler, NULL);
-        visual_log_set_handler (VISUAL_LOG_INFO, my_log_handler, NULL);
-        visual_log_set_handler (VISUAL_LOG_WARNING, my_log_handler, NULL);
-        visual_log_set_handler (VISUAL_LOG_CRITICAL, my_log_handler, NULL);
-        visual_log_set_handler (VISUAL_LOG_ERROR, my_log_handler, NULL);
-  */  
+        visual_error_set_handler(my_log_handler, NULL);
         visual_init (0, NULL);
         memset(&v, 0, sizeof(v));
         memset(&pcm_ref, 0, sizeof(pcm_ref));
@@ -1661,7 +1637,7 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     v.bin->sync(false);
     v.bin->depth_changed();
 
-    //v.mutex = visual_mutex_new();
+    pthread_mutex_init(&v.mutex, NULL);
 
     printf ("Libvisual version %s; bpp: %d %s\n", visual_get_version(), v.video->get_bpp(), (v.pluginIsGL ? "(GL)\n" : ""));
 }
@@ -1710,7 +1686,6 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
     VisVideoDepth depth;
     LV::VideoPtr vid;
 
-    //visual_mutex_lock(v.mutex);
 
     if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
         LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
@@ -1724,27 +1699,23 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
 
+    pthread_mutex_lock(&v.mutex);
+
     if(v.bin->depth_changed() || 
         ((int)info.width != v.video->get_width() || 
         (int)info.height != v.video->get_height()) ) 
     {
+        if(v.video->has_allocated_buffer())
+            v.video->free_buffer();
+
         v.pluginIsGL = (visual_bin_get_depth (v.bin) == VISUAL_VIDEO_DEPTH_GL);
         depthflag = v.bin->get_depth();
         depth = visual_video_depth_get_highest(depthflag);
-        if(v.pluginIsGL)
-        {
-            v.video->set_depth( VISUAL_VIDEO_DEPTH_GL);
-        } else
-        {
-            v.video->set_depth( depth);
-        }
-        v.video->set_dimension(info.width, info.height);
-        v.video->set_pitch(info.width * visual_video_bpp_from_depth(depth));
-
-        if(v.video->has_allocated_buffer())
-            v.video->free_buffer();
-        v.video->allocate_buffer();
-        v.bin->sync(TRUE);
+        
+        v.video->unref();
+        v.video = LV::Video::create(info.width, info.height, depth);
+        v.bin->set_video(v.video);
+        v.bin->sync(true);
     }
 
     if (0 && v.pluginIsGL) {
@@ -1763,7 +1734,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     vid->unref();
 
-    //visual_mutex_unlock(v.mutex);
+    pthread_mutex_unlock(&v.mutex);
 
     return TRUE;
 }

@@ -11,8 +11,7 @@ LOCAL_C_INCLUDES := ./include
 LOCAL_MODULE	:= visual
 #LOCAL_SHARED_LIBRARIES := lua 
 
-LOCAL_CFLAGS    += $(ARCH_CFLAGS) -Iprivate/ 
-#-DDISABLE_ORC
+LOCAL_CFLAGS    += $(ARCH_CFLAGS) -Iprivate/ -DDISABLE_ORC
 
 LOCAL_LDLIBS    := -lm -ldl -llog 
 

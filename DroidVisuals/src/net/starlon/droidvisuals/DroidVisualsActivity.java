@@ -137,6 +137,8 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     private VisualObject mVisualObject;
     //private UtilsEvaluator mEvaluator;
 
+    public final Object mSynch = new Object();
+
     public VisualObject getVisualObject()
     {
         return mVisualObject;
@@ -285,7 +287,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         class MyGestureDetector extends SimpleOnGestureListener {
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                synchronized(this)
+                synchronized(mSynch)
                 {
                     int actor = -1;
                     try {
@@ -636,7 +638,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
             case R.id.menu_close_app:
             {
-                synchronized(this)
+                synchronized(mSynch)
                 {
                     NativeHelper.visualsQuit();
                     this.finish();
@@ -1146,7 +1148,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
             mMicData = new short[PCM_SIZE * 2];
 
-            synchronized(this)
+            synchronized(mSynch)
             {
                 NativeHelper.resizePCM(PCM_SIZE, RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING);
                 mAudioThread = new Thread(new Runnable() 
