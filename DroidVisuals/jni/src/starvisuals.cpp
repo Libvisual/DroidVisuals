@@ -118,8 +118,8 @@ void v_cycleMorph ()
 }
 
 
-//static void v_cycleInput(int prev)
-//{
+static void v_cycleInput(int prev)
+{
 /*
     v.input_name = visual_input_get_next_by_name(v.input_name);
     if(!v.input_name)
@@ -127,7 +127,7 @@ void v_cycleMorph ()
         v.input_name = visual_input_get_next_by_name(0);
     }
 */
-//}
+}
 
 extern "C" {
 
@@ -244,28 +244,28 @@ static int v_upload_callback (VisInput* input, VisAudio *audio, void* unused)
 
 
 // ---------- INPUT ----------
-#if 0
 
 // Get the VisInput at the requested index.
-VisPluginRef *get_input(int index)
+LV::PluginRef &get_input(int index)
 {
-    VisList *list = visual_input_get_list();
 
-    int count = visual_list_count(list);
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_INPUT);
 
-    visual_return_val_if_fail(index < count, NULL);
+    int count = list.size();
 
+    if(index >= count)
+        return list[0];
 
-    return visual_list_get(list, index);
+    return list[index];
 }
 
 int get_input_index()
 {
-    VisList *list = visual_input_get_list();
-    int count = visual_list_count(list), i;
-    for(i = 0; i < count; i++)
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_INPUT);
+    int count = list.size();
+    for(int i = 0; i < count; i++)
     {
-        VisPluginRef *ref = visual_list_get(list, i);
+        LV::PluginRef ref = list[i];
         if(ref.info->plugname && !strcmp(v.input_name, ref.info->plugname))
             return i;
     }
@@ -276,22 +276,24 @@ int get_input_index()
 void finalizeInput(const char *input)
 {
 
+/*
     VisInput *old = visual_bin_get_input(v.bin);
 
     if(old != NULL)
         visual_object_unref(VISUAL_OBJECT(old));
 
-    VisInput *new = visual_input_new(input);
+    VisInput *inp = visual_input_new(input);
 
     if(strstr(input, "mic"))
     {
-    	if (visual_input_set_callback (new, v_upload_callback, NULL) < 0) {
+    	if (visual_input_set_callback (inp, v_upload_callback, NULL) < 0) {
     	    visual_log(VISUAL_LOG_CRITICAL, "Unable to set mic input callback.");	
     	}
     }
 
-    visual_input_realize(new);
-    visual_bin_set_input(v.bin, new);
+    visual_input_realize(inp);
+    visual_bin_set_input(v.bin, inp);
+*/
 }
 
 
@@ -306,7 +308,9 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleInput(JNI
 // Get the count of available input plugins.
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputCount(JNIEnv *env, jobject obj)
 {
-    return visual_list_count(visual_input_get_list());
+
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_INPUT);
+    return list.size();
 }
 
 // Get the index of the current plugin. 
@@ -323,13 +327,13 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetCurren
 // This name could change between calling this function and an actual plugin change!
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputSetCurrent(JNIEnv *env, jobject obj, jint index, jboolean now)
 {
-    VisList *list = visual_input_get_list();
-    int count = visual_list_count(list);
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_INPUT);
+    int count = list.size();
 
     if(index >= count)
         return FALSE;
     
-    VisPluginRef *ref = visual_list_get(list, index);
+    LV::PluginRef ref = list[index];
 
     v.input_name = ref.info->plugname;
 
@@ -344,23 +348,17 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputSetCu
 {
     jboolean iscopy;
     const char *input = env->GetStringUTFChars(name, &iscopy);
-    if(visual_input_valid_by_name(input))
-    {
-        v.input_name = input;
-        if(now)
-            finalizeInput(input);
-        return TRUE;
-    }
-    return FALSE;
+    v.input_name = input;
+    if(now)
+        finalizeInput(input);
+    return TRUE;
 }
 
 
 // Get the input's plugin name.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetName(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_input(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_input(index);
 
     return env->NewStringUTF(ref.info->plugname);
 }
@@ -368,9 +366,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetNam
 // Get the input's plugin longname.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetLongName(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_input(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_input(index);
 
     return env->NewStringUTF(ref.info->name);
 }
@@ -380,9 +376,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetAut
 {
     LV::PluginRef ref = get_input(index);
 
-    visual_return_val_if_fail(ref != NULL, NULL);
-
-    return env->NewStringUTF(ref->info->author);
+    return env->NewStringUTF(ref.info->author);
 }
 
 // Get the input's plugin version.
@@ -390,41 +384,33 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetVer
 {
     LV::PluginRef ref = get_input(index);
 
-    visual_return_val_if_fail(ref != NULL, NULL);
-
-    return env->NewStringUTF(ref->info->version);
+    return env->NewStringUTF(ref.info->version);
 }
 
 // Get the input's plugin about string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetAbout(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_input(index);
+    LV::PluginRef ref = get_input(index);
 
-    visual_return_val_if_fail(ref != NULL, NULL);
-
-    return env->NewStringUTF(ref->info->about);
+    return env->NewStringUTF(ref.info->about);
 }
 
 // Get the input's plugin help string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetHelp(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_input(index);
+    LV::PluginRef ref = get_input(index);
 
-    visual_return_val_if_fail(ref != NULL, NULL);
-
-    return env->NewStringUTF(ref->info->help);
+    return env->NewStringUTF(ref.info->help);
 }
 
 // Get the input's plugin license string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetLicense(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_input(index);
+    LV::PluginRef ref = get_input(index);
 
     char text[256];
 
-    visual_return_val_if_fail(ref != NULL, NULL);
-
-    const char *license = ref->info->license;
+    const char *license = ref.info->license;
 
     visual_mem_set(text, 0, sizeof(text));
 
@@ -443,7 +429,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetLic
 
 VisParamEntry *get_input_param_entry(int index)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     visual_return_val_if_fail(cont != NULL, NULL);
 
@@ -460,7 +446,7 @@ VisParamEntry *get_input_param_entry(int index)
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamGetCount(JNIEnv *env, jobject obj)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     visual_return_val_if_fail(cont != NULL, 0);
 
@@ -476,7 +462,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamG
 
     jstring string;
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -519,7 +505,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamG
     const char *chars = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(chars != NULL, NULL);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -537,7 +523,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
     visual_return_val_if_fail(param_name != NULL, FALSE);
     visual_return_val_if_fail(new_string != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -552,7 +538,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamGetI
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -569,7 +555,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -584,7 +570,7 @@ JNIEXPORT jfloat JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamGe
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0.0f);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -601,7 +587,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -613,11 +599,11 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
 JNIEXPORT jdouble JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParamGetDouble(JNIEnv *env, jobject obj, jstring name)
 {    
     jboolean iscopy;
-    const char *string = env->GetStringUTFChars(name, &iscopy));
+    const char *string = env->GetStringUTFChars(name, &iscopy);
 
     visual_return_val_if_fail(string != NULL, 0.0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -634,7 +620,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->input));
+    VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -643,39 +629,27 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
     return !ret;
 }
 
-#endif
-
 
 // ------ MORPH ------
 
 // Get the VisMorph at the requested index.
-VisPluginRef *get_morph(int index)
+LV::PluginRef &get_morph(int index)
 {
-/*
-    VisList *list = visual_morph_get_list();
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_MORPH);
 
-    int count = visual_list_count(list);
-
-    visual_return_val_if_fail(index >= 0 && index < count, NULL);
-
-    return visual_list_get(list, index);
-*/
-    return NULL;
+    return list[index];
 }
 
 int get_morph_index()
 {
-/*
-    VisList *list = visual_morph_get_list();
-    int count = visual_list_count(list), i;
-    for(i = 0; i < count; i++)
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_MORPH);
+    int count = list.size();
+    for(int i = 0; i < count; i++)
     {
-        VisPluginRef *ref = visual_list_get(list, i);
-        if(ref->info->plugname && !strcmp(v.morph_name, ref->info->plugname))
+        LV::PluginRef ref = list[i];
+        if(ref.info->plugname && !strcmp(v.morph_name, ref.info->plugname))
             return i;
     }
-    return -1;
-*/
     return -1;
 }
 
@@ -701,7 +675,8 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleMorph(JNI
 // Get the count of available morph plugins.
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphCount(JNIEnv *env, jobject obj)
 {
-    return visual_list_count(visual_morph_get_list());
+    LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_MORPH);
+    return list.size();
 }
 
 // Get the count of available morph plugins.
@@ -734,7 +709,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphSetCu
     if(index >= count)
         return FALSE;
     
-    VisPluginRef *ref = visual_list_get(list, index);
+    LV::PluginRef ref = visual_list_get(list, index);
 
     v.morph_name = ref->info->plugname;
 
@@ -764,9 +739,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphSetCu
 // Get the morph plugin's name string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetName(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->plugname);
 }
@@ -774,9 +747,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetNam
 // Get the morph plugin's long name string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetLongName(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->name);
 }
@@ -784,9 +755,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetLon
 // Get the morph plugin's author string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetAuthor(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->author);
 }
@@ -794,9 +763,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetAut
 // Get the morph plugin's version string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetVersion(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->version);
 
@@ -805,9 +772,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetVer
 // Get the morph plugin's about string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetAbout(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->about);
 }
@@ -815,9 +780,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetAbo
 // Get the morph plugin's help string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetHelp(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
-
-    visual_return_val_if_fail(ref != NULL, NULL);
+    LV::PluginRef ref = get_morph(index);
 
     return env->NewStringUTF(ref->info->help);
 }
@@ -825,11 +788,9 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetHel
 // Get the morph plugin's license string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetLicense(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_morph(index);
+    LV::PluginRef ref = get_morph(index);
 
     char text[256];
-
-    visual_return_val_if_fail(ref != NULL, NULL);
 
     const char *license = ref->info->license;
 
@@ -1110,7 +1071,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetCurren
     int count = visual_list_count(list), i;
     for(i = 0; i < count; i++)
     {
-        VisPluginRef *ref = visual_list_get(list, i);
+        LV::PluginRef ref = visual_list_get(list, i);
         if(ref->info->plugname && !strcmp(v.actor_name, ref->info->plugname))
             return i;
     }
@@ -1165,7 +1126,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetNam
 // Get the actor's long name.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetLongName(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
     const char *name;
 
     visual_return_val_if_fail(ref != NULL, NULL);
@@ -1177,7 +1138,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetLon
 // Get the actor's author.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetAuthor(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
 
     visual_return_val_if_fail(ref != NULL, NULL);
 
@@ -1187,7 +1148,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetAut
 // Get the actor's version string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetVersion(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
 
     visual_return_val_if_fail(ref != NULL, NULL);
 
@@ -1197,7 +1158,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetVer
 // Get the actor's about string.
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetAbout(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
 
     visual_return_val_if_fail(ref != NULL, NULL);
 
@@ -1208,7 +1169,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetAbo
 /*
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetHelp(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
 
     visual_return_val_if_fail(ref != NULL, NULL);
 
@@ -1220,7 +1181,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetHel
 /*
 JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetLicense(JNIEnv *env, jobject obj, jint index)
 {
-    VisPluginRef *ref = get_actor(index);
+    LV::PluginRef ref = get_actor(index);
     char text[256];
 
     visual_return_val_if_fail(ref != NULL, NULL);
