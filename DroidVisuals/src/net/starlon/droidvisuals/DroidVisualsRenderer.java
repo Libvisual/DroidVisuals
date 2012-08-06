@@ -251,25 +251,25 @@ final class Visual {
         glInited = true;
     }
 
-    public void updatePixels()
+    public boolean updatePixels()
     {
         // Fill the bitmap with black.
 
-        if(false)
-        {
-            mBitmap = mVisualObject.run();
-            mCanvas.setBitmap(mBitmap);
-        }
-        else
-        {
-            mBitmap.eraseColor(Color.BLACK);
-            mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
-        }
+        mBitmap.eraseColor(Color.BLACK);
 
+        boolean pre = mPluginIsGL;
+        mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
         
-        if(mPluginIsGL)
-            return;
-
+        if(pre != mPluginIsGL && mPluginIsGL)
+        {
+            resetGl();
+            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+        }
+        if(pre != mPluginIsGL && pre)
+        {
+            initGl(mTextureWidth, mTextureHeight);
+        }
+        
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
@@ -289,6 +289,7 @@ final class Visual {
         mPixelBuffer.rewind();
 
         mBitmap.copyPixelsToBuffer(mPixelBuffer);
+        return mPluginIsGL;
     }
 
     private void releaseTexture() {

@@ -65,7 +65,7 @@ struct {
     const char *actor_name;
     const char *morph_name;
     const char *input_name;
-    int         pluginIsGL;
+    bool pluginIsGL;
     int is_active;
 } v;
 
@@ -433,6 +433,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputGetLic
 
 }
 
+/*
 VisParamEntry *get_input_param_entry(int index)
 {
     VisParamContainer *cont = visual_plugin_get_params(visual_input_get_plugin(v.bin->get_input()));
@@ -634,7 +635,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputParam
 
     return !ret;
 }
-
+*/
 
 // ------ MORPH ------
 
@@ -1644,23 +1645,24 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     depthflag = visual_actor_get_supported_depth(actor);
     depth = visual_video_depth_get_highest(depthflag);
 
-    v.video = LV::Video::create(w, h, depth);
 
     v.bin->set_depth(depth);
-    v.bin->set_video(v.video);
 
     v.bin->switch_set_style(VISUAL_SWITCH_STYLE_DIRECT);
     v.bin->switch_set_automatic (true);
     v.bin->switch_set_steps (12);
 
+    v.video = LV::Video::create(w, h, depth);
+
+    v.bin->set_video(v.video);
+
     v.bin->connect(actor, input);
 
-    if((v.pluginIsGL = (visual_bin_get_depth (v.bin) == VISUAL_VIDEO_DEPTH_GL)))
-    {
-        v.video->set_depth(VISUAL_VIDEO_DEPTH_GL);
-    }
     v.bin->realize();
+
     v.bin->sync(false);
+
+    v.pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
 
     pthread_mutex_init(&v.mutex, NULL);
 
@@ -1730,15 +1732,19 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         (int)info.height != v.video->get_height()) ) 
     {
 
-        v.pluginIsGL = (visual_bin_get_depth (v.bin) == VISUAL_VIDEO_DEPTH_GL);
         depthflag = v.bin->get_depth();
+
         depth = visual_video_depth_get_highest(depthflag);
+
         
         if(v.video->has_allocated_buffer())
             v.video->free_buffer();
 
         v.video->set_dimension(info.width, info.height);
         v.video->set_depth(depth);
+
+        v.pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
+
         if(not v.pluginIsGL)
         {
             v.video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);

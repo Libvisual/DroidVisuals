@@ -121,7 +121,7 @@ static int lv_gltest_init (VisPluginData *plugin)
 
 	glLoadIdentity ();
 
-	glFrustum (-1, 1, -1, 1, 1.5, 10);
+	glFrustumf (-1.0f, 1.0f, -1.0f, 1.0f, 1.5f, 10);
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity ();
