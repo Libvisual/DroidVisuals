@@ -57,6 +57,8 @@ namespace LV {
        */
       static void init (int& argc, char**& argv);
 
+      System (System const&) = delete;
+
       ~System ();
 
       /**
@@ -74,11 +76,11 @@ namespace LV {
       int get_api_version () const;
 
       /**
-       * Returns a pointer to the libvisual global VisParamContainer.
+       * Returns a pointer to the libvisual global parameters.
        *
-       * @return A pointer to the libvisual global VisParamContainer.
+       * @return A pointer to the libvisual global parameters.
        */
-      VisParamContainer* get_params () const;
+      VisParamList* get_params () const;
 
   private:
 
@@ -87,7 +89,6 @@ namespace LV {
       const std::unique_ptr<Impl> m_impl;
 
       System (int& argc, char**& argv);
-      System (System const&);
   };
 
 } // LV namespace
@@ -107,7 +108,7 @@ LV_API const char *visual_get_version (void);
 
 LV_API int visual_get_api_version (void);
 
-LV_API VisParamContainer *visual_get_params (void);
+LV_API VisParamList *visual_get_params (void);
 
 LV_END_DECLS
 

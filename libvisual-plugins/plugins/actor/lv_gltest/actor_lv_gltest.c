@@ -25,7 +25,7 @@
 #include "gettext.h"
 #include <libvisual/libvisual.h>
 #include <GLES/gl.h>
-//#include <GL/glu.h>
+#include <GL/glu.h>
 #include <math.h>
 
 VISUAL_PLUGIN_API_VERSION_VALIDATOR
