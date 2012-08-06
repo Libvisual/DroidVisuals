@@ -3,6 +3,7 @@
 
 
 
+
 APPNAME = DroidVisualsActivity
 ACTIVITY = DroidVisualsActivity
 TARGET = android-15
