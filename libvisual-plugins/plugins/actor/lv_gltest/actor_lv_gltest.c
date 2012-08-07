@@ -128,15 +128,11 @@ static int lv_gltest_init (VisPluginData *plugin)
 
 	glLoadIdentity ();
 
-<<<<<<< HEAD
-	glFrustumf (-1.0f, 1.0f, -1.0f, 1.0f, 1.5f, 10);
-=======
 #ifdef USE_OPENGL_ES
 	glFrustumf (-1, 1, -1, 1, 1.5, 10);
 #else
 	glFrustum (-1, 1, -1, 1, 1.5, 10);
 #endif
->>>>>>> 71928621762ae653808d993752670634fbfc66a9
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity ();
