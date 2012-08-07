@@ -14,6 +14,17 @@ import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLUtils;
 import android.opengl.GLES20;
 
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGL11;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
+import javax.microedition.khronos.opengles.GL;
+import javax.microedition.khronos.opengles.GL10;
+
+
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -258,8 +269,9 @@ final class Visual {
         mBitmap.eraseColor(Color.BLACK);
 
         boolean pre = mPluginIsGL;
+
         mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
-        
+
         if(pre != mPluginIsGL && mPluginIsGL)
         {
             resetGl();
@@ -269,7 +281,6 @@ final class Visual {
         {
             initGl(mTextureWidth, mTextureHeight);
         }
-        
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
@@ -289,6 +300,7 @@ final class Visual {
         mPixelBuffer.rewind();
 
         mBitmap.copyPixelsToBuffer(mPixelBuffer);
+
         return mPluginIsGL;
     }
 
@@ -353,9 +365,11 @@ final class Visual {
         // Draw
         synchronized(mActivity.mSynch)
         {
-            updatePixels();
+            mPluginIsGL = updatePixels();
             if(mPluginIsGL)
+            {
                 return;
+            }
         }
 
         // Clear the surface

@@ -159,11 +159,11 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     v.bin    = new LV::Bin();
 
     v.bin->set_supported_depth(VISUAL_VIDEO_DEPTH_ALL);
-    v.bin->set_preferred_depth(VISUAL_BIN_DEPTH_HIGHEST);
 
     VisActor *actor = visual_actor_new((char*)v.actor_name);
     VisInput *input = visual_input_new((char*)v.input_name);
 
+visual_log(VISUAL_LOG_CRITICAL, "WTF aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %p", actor);
     if(strstr(v.input_name, "mic"))
     {
 /*
@@ -183,13 +183,22 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
     }
 
     depthflag = visual_actor_get_supported_depth(actor);
-    depth = visual_video_depth_get_highest(depthflag);
 
+visual_log(VISUAL_LOG_CRITICAL, "depthflaggggggggggggggggggggggggggggg %d", depthflag);
+
+    if((depthflag == VISUAL_VIDEO_DEPTH_GL))
+    {
+        
+        depth = visual_video_depth_get_highest(depthflag);
+    }
+    else
+    {
+        depth = visual_video_depth_get_highest_nogl(depthflag);
+    }
 
     v.bin->set_depth(depth);
 
     v.bin->switch_set_style(VISUAL_SWITCH_STYLE_DIRECT);
-    v.bin->switch_set_automatic (true);
     v.bin->switch_set_steps (12);
 
     v.video = LV::Video::create(w, h, depth);
@@ -206,7 +215,7 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
 
     pthread_mutex_init(&v.mutex, NULL);
 
-    printf ("Libvisual version %s; bpp: %d %s\n", visual_get_version(), v.video->get_bpp(), (v.pluginIsGL ? "(GL)\n" : ""));
+    visual_log (VISUAL_LOG_CRITICAL, "Libvisual version %s; bpp: %d %s\n", visual_get_version(), v.video->get_bpp(), (v.pluginIsGL ? "(GL)\n" : ""));
 }
 
 // Initialize the application's view and libvisual.
@@ -276,14 +285,14 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
         depth = visual_video_depth_get_highest(depthflag);
 
+        if((v.pluginIsGL = (depthflag == VISUAL_VIDEO_DEPTH_GL)))
+            depth = VISUAL_VIDEO_DEPTH_GL;
         
         if(v.video->has_allocated_buffer())
             v.video->free_buffer();
 
         v.video->set_dimension(info.width, info.height);
         v.video->set_depth(depth);
-
-        v.pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
 
         if(not v.pluginIsGL)
         {
@@ -293,10 +302,10 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         v.bin->sync(true);
     }
 
-    v.bin->run();
+    //v.bin->run();
 
     if (not v.pluginIsGL ) {
-        vid->convert_depth(v.video);
+        //vid->convert_depth(v.video);
     }
 
     vid->unref();

@@ -668,6 +668,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     /* load our native library */
     static {
         System.loadLibrary("gnustl_shared");
+        System.loadLibrary("GLU");
         System.loadLibrary("orc");
         System.loadLibrary("visual");
         System.loadLibrary("luascript");
