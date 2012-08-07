@@ -43,6 +43,8 @@ public class DroidVisualsRenderer implements Renderer {
     public VisualObject mVisualObject;
     private int mSurfaceWidth;
     private int mSurfaceHeight;
+    public int mTextureWidth = 128;
+    public int mTextureHeight = 128;
     private Stats mStats;
     private DroidVisualsActivity mActivity;
     private boolean mInited = false;
@@ -85,7 +87,7 @@ public class DroidVisualsRenderer implements Renderer {
         String input = mActivity.getInput();
         String morph = mActivity.getMorph();
 
-        NativeHelper.initApp(width, height, actor, input, morph );
+        NativeHelper.initApp(mTextureWidth, mTextureHeight, actor, input, morph );
     }
 
     @Override
@@ -172,6 +174,8 @@ final class Visual {
     }
 
     public void initialize(GL10 gl, int surfaceWidth, int surfaceHeight) {
+        mTextureWidth = surfaceWidth;
+        mTextureHeight = surfaceHeight;
 
         mGL10 = gl;
 
@@ -269,12 +273,8 @@ final class Visual {
 
         mBitmap.eraseColor(Color.BLACK);
 
-        boolean pre = mPluginIsGL;
-
         mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
 
-        if(!mPluginIsGL)
-            initGl(mTextureWidth, mTextureHeight);
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
@@ -294,9 +294,6 @@ final class Visual {
         mPixelBuffer.rewind();
 
         mBitmap.copyPixelsToBuffer(mPixelBuffer);
-
-        if(mPluginIsGL)
-            resetGl();
 
         return mPluginIsGL;
     }
@@ -369,6 +366,9 @@ final class Visual {
             }
         }
 
+        initGl(surfaceWidth, surfaceHeight);
+
+
         // Clear the surface
         mGL10.glClearColorx(0, 0, 0, 0);
         mGL10.glClear(GL10.GL_COLOR_BUFFER_BIT);
@@ -400,6 +400,7 @@ final class Visual {
         mGL10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         mGL10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 
+        resetGl();
     }
 }
 
