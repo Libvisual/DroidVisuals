@@ -27,7 +27,12 @@
 #include "notch.h"
 #include <libvisual/libvisual.h>
 #include <math.h>
+#ifdef USE_OPENGL_ES
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <GL/glu.h>
 
 VISUAL_PLUGIN_API_VERSION_VALIDATOR

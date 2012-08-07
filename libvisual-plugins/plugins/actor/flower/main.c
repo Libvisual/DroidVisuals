@@ -26,7 +26,12 @@
 #include <math.h>
 #include <stdlib.h>
 
+#ifdef USE_OPENGL_ES
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <GL/glu.h>
 
 #include "main.h"
