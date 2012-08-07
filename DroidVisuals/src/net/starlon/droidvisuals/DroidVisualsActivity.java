@@ -259,6 +259,8 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         super.onCreate(state);
         makeFile("/data/data/net.starlon.droidvisuals/libstub.lua", R.raw.libstub);
         makeFile("/data/data/net.starlon.droidvisuals/pluginmath.lua", R.raw.pluginmath);
+        makeFile("/data/data/net.starlon.droidvisuals/star1.bmp", R.raw.star1);
+        makeFile("/data/data/net.starlon.droidvisuals/star2.bmp", R.raw.star2);
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
