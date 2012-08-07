@@ -46,6 +46,7 @@ public class DroidVisualsRenderer implements Renderer {
     private Stats mStats;
     private DroidVisualsActivity mActivity;
     private boolean mInited = false;
+    private Bitmap mBitmap;
 
     public DroidVisualsRenderer(Context context) {
         vis = new Visual((DroidVisualsActivity)context, this);
@@ -67,6 +68,7 @@ public class DroidVisualsRenderer implements Renderer {
     @Override
     public void onDrawFrame(GL10 gl10) {
         mStats.startFrame();
+        //NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
         vis.performFrame(gl10, mSurfaceWidth, mSurfaceHeight);
         mStats.endFrame();
     }
@@ -77,6 +79,13 @@ public class DroidVisualsRenderer implements Renderer {
         //mVisualObject.onSizeChanged(width, height, mSurfaceWidth, mSurfaceHeight);
         mSurfaceWidth = width;
         mSurfaceHeight = height;
+        //mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        String actor = mActivity.getActor();
+        String input = mActivity.getInput();
+        String morph = mActivity.getMorph();
+
+        NativeHelper.initApp(width, height, actor, input, morph );
     }
 
     @Override
@@ -160,14 +169,6 @@ final class Visual {
         mTextureBuffer = byteBuffer.asFloatBuffer();
         mTextureBuffer.put(texture);
         mTextureBuffer.position(0);
-
-        String actor = mActivity.getActor();
-        String input = mActivity.getInput();
-        String morph = mActivity.getMorph();
-
-        NativeHelper.initApp(mTextureWidth, mTextureHeight, actor, input, morph );
-
-        mActivity.setPlugins(true);
     }
 
     public void initialize(GL10 gl, int surfaceWidth, int surfaceHeight) {
@@ -199,10 +200,10 @@ final class Visual {
 
         // init the GL settings
         if (glInited) {
-            resetGl();
+            //resetGl();
         }
 
-        initGl(surfaceWidth, surfaceHeight);
+        //initGl(surfaceWidth, surfaceHeight);
 
         // init the GL texture
         initGlTexture();
@@ -272,15 +273,8 @@ final class Visual {
 
         mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
 
-        if(pre != mPluginIsGL && mPluginIsGL)
-        {
-            resetGl();
-            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
-        }
-        if(pre != mPluginIsGL && pre)
-        {
+        if(!mPluginIsGL)
             initGl(mTextureWidth, mTextureHeight);
-        }
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
@@ -300,6 +294,9 @@ final class Visual {
         mPixelBuffer.rewind();
 
         mBitmap.copyPixelsToBuffer(mPixelBuffer);
+
+        if(mPluginIsGL)
+            resetGl();
 
         return mPluginIsGL;
     }

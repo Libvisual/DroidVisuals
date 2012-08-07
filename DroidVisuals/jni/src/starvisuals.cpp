@@ -302,7 +302,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         v.bin->sync(true);
     }
 
-    //v.bin->run();
+    v.bin->run();
 
     if (not v.pluginIsGL ) {
         //vid->convert_depth(v.video);
