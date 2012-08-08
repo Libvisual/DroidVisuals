@@ -131,7 +131,7 @@ public class DroidVisualsView extends View {
             String input = mActivity.getInput();
             String morph = mActivity.getMorph();
 
-            NativeHelper.initApp(WIDTH, HEIGHT, actor, input, morph);
+            NativeHelper.initApp(WIDTH, HEIGHT, actor, input, morph, true);
         }
         mLock.unlock();
     }
@@ -188,7 +188,7 @@ public class DroidVisualsView extends View {
                             then = mStatsCanvas.nowMil();
                             mStatsNative.startFrame();
                             mLock.lock();
-                            NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+                            NativeHelper.renderBitmap(mBitmap);
                             mLock.unlock();
                             mStatsNative.endFrame();
 

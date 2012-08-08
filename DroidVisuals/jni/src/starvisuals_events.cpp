@@ -7,6 +7,7 @@ extern "C" {
 // Pump mouse motion events to the current actor.
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_mouseMotion(JNIEnv * env, jobject  obj, jfloat x, jfloat y)
 {
+    return;
     visual_log(VISUAL_LOG_INFO, "Mouse motion: x %f, y %f", x, y);
     VisPluginData *plugin = visual_actor_get_plugin(visual_bin_get_actor(v.bin));
     VisEventQueue *eventqueue = visual_plugin_get_eventqueue(plugin);
@@ -17,6 +18,7 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_mouseMotion(JN
 // Pump mouse button events to the current actor.
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_mouseButton(JNIEnv * env, jobject  obj, jint button, jfloat x, jfloat y)
 {
+    return;
     visual_log(VISUAL_LOG_INFO, "Mouse button: button %d, x %f, y %f", button, x, y);
     VisPluginData *plugin = visual_actor_get_plugin(visual_bin_get_actor(v.bin));
     VisEventQueue *eventqueue = visual_plugin_get_eventqueue(plugin);
@@ -29,6 +31,7 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_mouseButton(JN
 // Pump resize events to the current actor.
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_screenResize(JNIEnv * env, jobject  obj, jint w, jint h)
 {
+    return;
     visual_log(VISUAL_LOG_INFO, "Screen resize w %d h %d", w, h);
 
     VisPluginData *plugin = visual_actor_get_plugin(visual_bin_get_actor(v.bin));
@@ -44,6 +47,7 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_screenResize(J
 // Pump keyboard events to the current actor.
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_keyboardEvent(JNIEnv * env, jobject  obj, jint x, jint y)
 {
+    return;
     VisEventQueue *eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(visual_bin_get_actor(v.bin)));
     VisKey keysym = (VisKey)0;
     int keymod = 0;

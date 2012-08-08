@@ -58,12 +58,13 @@ public class DroidVisualsRenderer implements Renderer {
         mStats.statsInit();
         mActivity = (DroidVisualsActivity)context;
         //mVisualObject = mActivity.getVisualObject();
-        mInited = true;
     }
 
     public void destroy()
     {
-        if(!mInited) return;
+        if(!mInited)
+            return;
+
         vis.destroy();
         vis = null;
         mStats = null;
@@ -71,24 +72,40 @@ public class DroidVisualsRenderer implements Renderer {
     }
     @Override
     public void onDrawFrame(GL10 gl10) {
-        mStats.startFrame();
-        vis.performFrame(gl10);
-        mStats.endFrame();
+            synchronized(mActivity.mSynch)
+            {
+                mStats.startFrame();
+                vis.performFrame(gl10);
+                mStats.endFrame();
+            }
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
-        //mVisualObject.onSizeChanged(width, height, mSurfaceWidth, mSurfaceHeight);
-        Dimension.surfaceWidth = width;
-        Dimension.surfaceHeight = height;
-
-        vis.initialize(gl10);
-
-        String actor = mActivity.getActor();
-        String input = mActivity.getInput();
-        String morph = mActivity.getMorph();
-
-        NativeHelper.initApp(Dimension.textureWidth, Dimension.textureHeight, actor, input, morph );
+        
+            //mVisualObject.onSizeChanged(width, height, mSurfaceWidth, mSurfaceHeight);
+            synchronized(mActivity.mSynch)
+            {
+                Dimension.surfaceWidth = width;
+                Dimension.surfaceHeight = height;
+                if(!mInited)
+                {
+                    mInited = true;
+                    vis.initialize(gl10);
+                }
+                else
+                {
+                    vis.resize(gl10);
+                }
+        
+                String actor = mActivity.getActor();
+                String input = mActivity.getInput();
+                String morph = mActivity.getMorph();
+        
+                NativeHelper.initApp(Dimension.textureWidth, Dimension.textureHeight, actor, input, morph, true);
+                if(NativeHelper.actorIsGL())
+                    NativeHelper.initApp(Dimension.surfaceWidth, Dimension.surfaceHeight, actor, input, morph, true);
+            }
     }
 
     @Override
@@ -117,18 +134,20 @@ public class DroidVisualsRenderer implements Renderer {
 
 final class Visual {
     private VisualObject mVisualObject;
-    private ByteBuffer mPixelBuffer;
+    private ByteBuffer mPixelBufferTexture;
     private static final int bytesPerPixel = 4;
     private int mTextureId = -1;
     private int[] textureCrop = new int[4]; 
     private boolean glInited = false;
     private DroidVisualsActivity mActivity;
     private DroidVisualsRenderer mRenderer;
-    private Bitmap mBitmap;
+    private Bitmap mBitmapTexture = null;
+    private Bitmap mBitmapSurface = null;
     private Paint mPaint;
     private Canvas mCanvas;
     private GL10 mGL10 = null;
     private boolean mPluginIsGL;
+    private boolean mPluginWasGL;
 
     private FloatBuffer mVertexBuffer;   // buffer holding the vertices
     private float vertices[] = {
@@ -172,12 +191,14 @@ final class Visual {
         mTextureBuffer.position(0);
     }
 
-    public void initialize(GL10 gl) {
+    public void initialize(GL10 gl10) {
 
-        mGL10 = gl;
+        mGL10 = gl10;
 
         int textureWidth = Dimension.textureWidth;
         int textureHeight = Dimension.textureHeight;
+        int surfaceWidth = Dimension.surfaceWidth;
+        int surfaceHeight = Dimension.surfaceHeight;
 
         textureCrop[0] = 0;
         textureCrop[1] = 0;
@@ -186,9 +207,10 @@ final class Visual {
 
         mCanvas = new Canvas();
         
-        mBitmap = Bitmap.createBitmap(textureWidth, textureHeight, Bitmap.Config.ARGB_8888);
+        mBitmapTexture = Bitmap.createBitmap(textureWidth, textureHeight, Bitmap.Config.ARGB_8888);
+        mBitmapSurface = Bitmap.createBitmap(surfaceWidth, surfaceHeight, Bitmap.Config.ARGB_8888);
 
-        mCanvas.setBitmap(mBitmap);
+        mCanvas.setBitmap(mBitmapTexture);
 
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
@@ -199,14 +221,34 @@ final class Visual {
         mPaint.setColor(Color.WHITE);
         mPaint.setTextAlign(Paint.Align.CENTER);
 
+
         // init the pixel buffer
-        mPixelBuffer = ByteBuffer.allocate(textureWidth * textureHeight * bytesPerPixel);
+        mPixelBufferTexture = ByteBuffer.allocate(textureWidth * textureHeight * bytesPerPixel);
 
         // init the GL texture
         initGlTexture();
 
+        resize(gl10);
     }   
 
+    public void resize(GL10 gl10)
+    {
+        int textureWidth = Dimension.textureWidth;
+        int textureHeight = Dimension.textureHeight;
+        int surfaceWidth = Dimension.surfaceWidth;
+        int surfaceHeight = Dimension.surfaceHeight;
+
+        if(mBitmapTexture != null)
+            mBitmapTexture.recycle();
+        if(mBitmapSurface != null)
+            mBitmapTexture.recycle();
+
+        mBitmapTexture = Bitmap.createBitmap(textureWidth, textureHeight, Bitmap.Config.ARGB_8888);
+        mBitmapSurface = Bitmap.createBitmap(surfaceWidth, surfaceHeight, Bitmap.Config.ARGB_8888);
+ 
+        gl10.glViewport(0, 0, surfaceWidth, surfaceHeight);
+       
+    }
     public void resetGl() {
         if(!glInited || mGL10 == null) return;
 
@@ -226,9 +268,12 @@ final class Visual {
 
         resetGl();
 
-        mBitmap.recycle();
-        mBitmap = null;
-        mPixelBuffer = null;
+        mBitmapTexture.recycle();
+        mBitmapSurface.recycle();
+        
+        mBitmapTexture = null;
+        mBitmapSurface = null;
+        mPixelBufferTexture = null;
         mPaint = null;
         mCanvas = null;
         mVertexBuffer = null;
@@ -239,10 +284,9 @@ final class Visual {
     }
     
 
-    public void initGl(int surfaceWidth, int surfaceHeight) {
+    public void initGl() {
         if(glInited || mGL10 == null) return;
 
-        mGL10.glViewport(0, 0, surfaceWidth, surfaceHeight);
 
         mGL10.glShadeModel(GL10.GL_FLAT);
         mGL10.glFrontFace(GL10.GL_CCW);
@@ -260,22 +304,28 @@ final class Visual {
         glInited = true;
     }
 
-    public boolean updatePixels()
+    public void updatePixels()
     {
         // Fill the bitmap with black.
 
-        mBitmap.eraseColor(Color.BLACK);
 
-        mPluginIsGL = NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
+        if(NativeHelper.actorIsGL())
+        {
+            NativeHelper.renderBitmap(mBitmapSurface);
+            return;
+        }
+        else
+        {
+            mBitmapTexture.eraseColor(Color.BLACK);
+            mPluginIsGL = NativeHelper.renderBitmap(mBitmapTexture);
+        }
+
 
 
         // If DroidVisuals has text to display, then use a canvas and paint brush to display it.
         String text = mActivity.getDisplayText();
         if(text != null)
         {
-            // Give the bitmap a canvas so we can draw on it.
-    
-
             float canvasWidth = mCanvas.getWidth();
             float textWidth = mPaint.measureText(text);
             float startPositionX = (canvasWidth - textWidth / 2) / 2;
@@ -283,12 +333,12 @@ final class Visual {
             mCanvas.drawText(text, startPositionX, Dimension.textureHeight-18, mPaint);
         }
 
-        // Copy bitmap pixels into buffer.
-        mPixelBuffer.rewind();
-
-        mBitmap.copyPixelsToBuffer(mPixelBuffer);
-
-        return mPluginIsGL;
+        if(!mPluginIsGL)
+        {
+            mPixelBufferTexture.rewind();
+    
+            mBitmapTexture.copyPixelsToBuffer(mPixelBufferTexture);
+        }
     }
 
     private void releaseTexture() {
@@ -335,7 +385,7 @@ final class Visual {
         int height = Dimension.textureHeight;
 
         mGL10.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height,
-                0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBuffer);        
+                0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBufferTexture);        
 
 
         // at this point, we are OK to further modify the texture
@@ -347,27 +397,21 @@ final class Visual {
 
     public void performFrame(GL10 gl) {
 
-        if(mGL10 != gl)
-            mGL10 = gl;
-
-        if(mGL10 == null)
-            return;
-        // Draw
-        synchronized(mActivity.mSynch)
-        {
-            mPluginIsGL = updatePixels();
-            if(mPluginIsGL)
-            {
-                return;
-            }
-        }
-
         int surfaceWidth = Dimension.surfaceWidth;
         int surfaceHeight = Dimension.surfaceHeight;
         int textureHeight = Dimension.textureHeight;
         int textureWidth = Dimension.textureWidth;
 
-        initGl(surfaceWidth, surfaceHeight);
+        if(mGL10 != gl)
+            mGL10 = gl;
+
+        updatePixels();
+
+
+        if(NativeHelper.actorIsGL())
+            return;
+
+        initGl();
 
         // Clear the surface
         mGL10.glClearColorx(0, 0, 0, 0);
@@ -390,7 +434,7 @@ final class Visual {
 
         // Update the texture
         mGL10.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, 
-                           GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBuffer);
+                           GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBufferTexture);
         
 
         // Draw the vertices as triangle strip

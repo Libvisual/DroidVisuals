@@ -257,10 +257,12 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     protected void onCreate(Bundle state)
     {
         super.onCreate(state);
+/*
         makeFile("/data/data/net.starlon.droidvisuals/libstub.lua", R.raw.libstub);
         makeFile("/data/data/net.starlon.droidvisuals/pluginmath.lua", R.raw.pluginmath);
         makeFile("/data/data/net.starlon.droidvisuals/star1.bmp", R.raw.star1);
         makeFile("/data/data/net.starlon.droidvisuals/star2.bmp", R.raw.star2);
+*/
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -424,23 +426,23 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
     public void setUseGL(boolean truth)
     {
-        if(detectGL20())
-        {
-            mRendererGLVis = new DroidVisualsRenderer(this);
+            if(detectGL20())
+            {
+                mRendererGLVis = new DroidVisualsRenderer(this);
+        
+                mViewGL = new DroidVisualsViewGL(this);
+        
+                mViewGL.setRenderer(mRendererGLVis);
     
-            mViewGL = new DroidVisualsViewGL(this);
-    
-            mViewGL.setRenderer(mRendererGLVis);
-
-            mViewGL.setOnClickListener(DroidVisualsActivity.this);
-            mViewGL.setOnTouchListener(mGestureListener);
-        }
-        else
-        {
-            mView = new DroidVisualsView(this);
-            mView.setOnClickListener(DroidVisualsActivity.this);
-            mView.setOnTouchListener(mGestureListener);
-        }
+                mViewGL.setOnClickListener(DroidVisualsActivity.this);
+                mViewGL.setOnTouchListener(mGestureListener);
+            }
+            else
+            {
+                mView = new DroidVisualsView(this);
+                mView.setOnClickListener(DroidVisualsActivity.this);
+                mView.setOnTouchListener(mGestureListener);
+            }
 
             if(truth)
             {
@@ -542,21 +544,24 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     {   
         super.onStart();
 
-        getPrefs();
-
-        //mVisualObject = new VisualObject(mWidth, mHeight, mActor, mInput, mMorph);
-
-
-        keepScreenOn(true);
-
-
-        enableMic(mInput);
-
-        getAlbumArt();
-
-        setUseGL(mUseGL);
-
-        registerReceiver(mReceiver, mIntentFilter);
+        synchronized(mSynch)
+        {
+            getPrefs();
+    
+            //mVisualObject = new VisualObject(mWidth, mHeight, mActor, mInput, mMorph);
+    
+    
+            keepScreenOn(true);
+    
+    
+            enableMic(mInput);
+    
+            getAlbumArt();
+    
+            setUseGL(mUseGL);
+    
+            registerReceiver(mReceiver, mIntentFilter);
+        }
 
     }
 
@@ -593,9 +598,12 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     {
         super.onStop();
 
-        disableMic();
+        synchronized(mSynch)
+        {
+            disableMic();
 
-        unregisterReceiver(mReceiver);
+            unregisterReceiver(mReceiver);
+        }
 
     }
 

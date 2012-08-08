@@ -34,7 +34,7 @@
 
 // Initial plugins. Preferences should override these.
 #define MORPH "tentacle"
-#define ACTOR "lv_scope"
+#define ACTOR "madspin"
 #define INPUT "debug"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
@@ -64,5 +64,22 @@ struct {
     bool pluginIsGL;
     int is_active;
 } v;
+
+extern "C" {
+LV::PluginRef &get_input(int index);
+void v_cycleInput(int prev);
+int get_input_index();
+void finalizeInput(const char *input);
+
+LV::PluginRef &get_actor(int index);
+void v_cycleActor(int prev);
+int get_actor_index();
+void finalizeActor(const char *input);
+
+LV::PluginRef &get_morph(int index);
+void v_cycleMorph();
+int get_input_morph();
+void finalizeMorph(const char *input);
+}
 
 #endif

@@ -35,6 +35,40 @@ static void my_log_handler(VisLogSeverity severity, const char *msg, const VisLo
 extern "C" {
 
 
+// Increment or decrement actor and morph
+// Variable 'prev' is used to shift morph plugin around.
+// 0=left, 1=right, 2=up, 3=down, 4=cycle.. Any other and the current value is used.
+JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSwitch(JNIEnv * env, jobject obj, jint prev)
+{
+
+    pthread_mutex_lock(&v.mutex);
+    VisMorph *bin_morph = visual_bin_get_morph(v.bin);
+    const char *morph = v.morph_name;
+
+    
+    if(bin_morph && !visual_morph_is_done(bin_morph))
+        return FALSE;
+
+    switch(prev)
+    {
+        case 1: v.morph_name = "slide_left"; break;
+        case -1: v.morph_name = "slide_right"; break;
+        case 2: v.morph_name = "slide_top"; break;
+        case -2: v.morph_name = "slide_bottom"; break;
+        case 0: prev = 1; break;
+        default: v.morph_name = MORPH; break;
+    }
+
+    visual_log(VISUAL_LOG_INFO, "Switching actors %s -> %s", morph, v.morph_name);
+
+    v_cycleActor((int)prev);
+    //visual_bin_set_morph(v.bin, (char *)v.morph_name);
+    visual_bin_switch_actor_by_name(v.bin, (char *)v.actor_name);
+    pthread_mutex_unlock(&v.mutex);
+
+    return TRUE;
+}
+
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_setIsActive(JNIEnv *env, jobject obj, jboolean is_active)
 {
     v.is_active = (int)is_active;
@@ -45,6 +79,16 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_setIsActive(JN
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_getIsActive(JNIEnv *env, jobject obj)
 {
     return v.is_active;
+}
+
+JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorIsGL(JNIEnv *env, jobject obj)
+{
+    //pthread_mutex_lock(&v.mutex);
+    VisVideoDepth depth = v.bin->get_depth();
+    //pthread_mutex_lock(&v.mutex);
+    if(depth == VISUAL_VIDEO_DEPTH_GL)
+        return true;
+    return false;
 }
 
 static int v_upload_callback (VisInput* input, VisAudio *audio, void* unused)
@@ -120,19 +164,21 @@ static int v_upload_callback (VisInput* input, VisAudio *audio, void* unused)
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_visualsQuit(JNIEnv * env, jobject  obj, jboolean toExit)
 {
 
+    pthread_mutex_lock(&v.mutex);
     if(visual_is_initialized())
         visual_quit();
+    pthread_mutex_unlock(&v.mutex);
 }
 
 void app_main(int w, int h, const char *actor_, const char *input_, const char *morph_)
 {
 
-    usleep(333333); 
     int depthflag;
     VisVideoDepth depth;
 
     if(!visual_is_initialized())
     {
+        pthread_mutex_init(&v.mutex, NULL);
         visual_log_set_verbosity (VISUAL_LOG_DEBUG);
         visual_error_set_handler(my_error_handler, NULL);
         visual_log_set_handler(VISUAL_LOG_DEBUG, my_log_handler, NULL);
@@ -144,21 +190,20 @@ void app_main(int w, int h, const char *actor_, const char *input_, const char *
         memset(&pcm_ref, 0, sizeof(pcm_ref));
         LV::PluginRegistry::instance()->add_path("/data/data/net.starlon.droidvisuals/lib");
 
-    } else {
-/*
-        visual_video_free_buffer(v.video);
-        visual_object_unref(VISUAL_OBJECT(v.video));
-        v.video = NULL; // Will thread activity blowup in native_render() if we do this? Speifically free_buffer(). hmm This whole block of code is wrong.
-*/
+
     }
+
+    pthread_mutex_lock(&v.mutex);
 
     v.morph_name = morph_;
     v.actor_name = actor_;
     v.input_name = input_;
 
-    v.bin    = new LV::Bin();
-
-    v.bin->set_supported_depth(VISUAL_VIDEO_DEPTH_ALL);
+    if(v.bin == NULL)
+    {
+        v.bin    = new LV::Bin();
+        v.bin->set_supported_depth(VISUAL_VIDEO_DEPTH_ALL);
+    }
 
     VisActor *actor = visual_actor_new((char*)v.actor_name);
     VisInput *input = visual_input_new((char*)v.input_name);
@@ -201,6 +246,12 @@ visual_log(VISUAL_LOG_CRITICAL, "depthflaggggggggggggggggggggggggggggg %d", dept
     v.bin->switch_set_style(VISUAL_SWITCH_STYLE_DIRECT);
     v.bin->switch_set_steps (12);
 
+    if(v.video.get() != NULL)
+    {
+        v.video->free_buffer();
+        v.video->unref();
+    }
+
     v.video = LV::Video::create(w, h, depth);
 
     v.bin->set_video(v.video);
@@ -213,13 +264,14 @@ visual_log(VISUAL_LOG_CRITICAL, "depthflaggggggggggggggggggggggggggggg %d", dept
 
     v.pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
 
-    pthread_mutex_init(&v.mutex, NULL);
+    pthread_mutex_unlock(&v.mutex);
 
     visual_log (VISUAL_LOG_CRITICAL, "Libvisual version %s; bpp: %d %s\n", visual_get_version(), v.video->get_bpp(), (v.pluginIsGL ? "(GL)\n" : ""));
+
 }
 
 // Initialize the application's view and libvisual.
-JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_initApp(JNIEnv * env, jobject  obj, jint w, jint h, jstring actor, jstring input, jstring morph)
+JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_initApp(JNIEnv * env, jobject  obj, jint w, jint h, jstring actor, jstring input, jstring morph, jboolean defaults)
 {
     app_main(w, h, ACTOR, INPUT, MORPH);
 }
@@ -252,7 +304,7 @@ void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
 */
 
 // Render the view's bitmap image.
-JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap, jboolean do_swap)
+JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap)
 {
 
     AndroidBitmapInfo  info;
@@ -276,7 +328,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
 
-    if(v.bin->depth_changed() && v.bin->get_depth() != VISUAL_VIDEO_DEPTH_GL  || 
+    if(v.bin->depth_changed()  || 
         ((int)info.width != v.video->get_width() || 
         (int)info.height != v.video->get_height()) ) 
     {
@@ -293,6 +345,12 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
         v.video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);
         v.video->allocate_buffer();
+
+        VisPluginData *plugin = visual_actor_get_plugin(visual_bin_get_actor(v.bin));
+        VisEventQueue *eventqueue = visual_plugin_get_eventqueue(plugin);
+        VisEvent *event = visual_event_new_resize(info.width, info.height);
+        eventqueue->add(*event);
+
         v.bin->sync(true);
     }
 

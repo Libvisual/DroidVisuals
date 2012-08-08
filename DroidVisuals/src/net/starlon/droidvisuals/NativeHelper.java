@@ -77,6 +77,7 @@ public class NativeHelper
     public static native String actorGetHelp(int index);
     public static native String actorGetLicense(int index);
     public static native int actorParamGetCount();
+    public static native boolean actorIsGL();
     public static native String actorParamGetType(int index);
     public static native String actorParamGetName(int index);
     public static native String actorParamGetString(String name);
@@ -113,12 +114,12 @@ public class NativeHelper
 
     /* Init and quit libvisual */
     public static native void visualsQuit();
-    public static native void initApp(int w, int h, String actor, String input, String morph);
+    public static native void initApp(int w, int h, String actor, String input, String morph, boolean defaults);
     public static native boolean getIsActive();
     public static native int setIsActive(boolean isactive);
 
     /* Draw and render vis */
-    public static native boolean renderBitmap(Bitmap  bitmap, boolean do_swap);
+    public static native boolean renderBitmap(Bitmap  bitmap);
 
     /** constructor */
     public NativeHelper(Context c)

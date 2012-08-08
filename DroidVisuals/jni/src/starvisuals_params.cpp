@@ -20,7 +20,7 @@ LV::PluginRef &get_input(int index)
     return list[index];
 }
 
-static void v_cycleInput(int prev)
+void v_cycleInput(int prev)
 {
 /*
     v.input_name = visual_input_get_next_by_name(v.input_name);
@@ -427,19 +427,26 @@ int get_morph_index()
     return -1;
 }
 
-static void finalizeMorph(const char *morph)
+void finalizeMorph(const char *morph)
 {
 
 }
 
 void v_cycleActor (int prev)
 {
-    auto name = prev ? visual_actor_get_prev_by_name(v.actor_name)
-                     : visual_actor_get_next_by_name(v.actor_name);
+    if(v.bin == NULL)
+        return;
 
-    if (!name) {
-        name = prev ? visual_actor_get_prev_by_name(0)
-                    : visual_actor_get_next_by_name(0);
+    VisActor *actor = v.bin->get_actor();
+
+    const char *str = visual_actor_get_plugin(actor)->info->name;
+    auto name = prev ? visual_actor_get_prev_by_name(str)
+                     : visual_actor_get_next_by_name(str);
+
+    if(not name)
+    {
+        name = prev ? visual_actor_get_next_by_name(str)
+                    : visual_actor_get_prev_by_name(str);
     }
 
     v.actor_name = name;
@@ -448,10 +455,14 @@ void v_cycleActor (int prev)
 
 void v_cycleMorph ()
 {
-    auto name = visual_morph_get_next_by_name(v.morph_name);
+    return;
+    const char *str = visual_morph_get_plugin(v.bin->get_morph())->info->name;
+    auto name = visual_morph_get_next_by_name(str);
 
-    if(!name) {
-        name = visual_morph_get_next_by_name(0);
+
+    if(not name)
+    {
+        name = visual_morph_get_prev_by_name(str);
     }
 
     v.morph_name = name;
@@ -831,10 +842,16 @@ LV::PluginRef &get_actor(int index)
 int get_actor_index()
 {
     LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_ACTOR);
+    const char *name = visual_actor_get_plugin(v.bin->get_actor())->info->name;
+    if(!name)
+    {
+        visual_log(VISUAL_LOG_DEBUG, "get_actor_index() failed");
+        return -1;
+    }
     for(unsigned int i = 0; i < list.size(); i++)
     {
         LV::PluginRef ref = list[i];
-        if(ref.info->plugname && !strcmp(v.actor_name, ref.info->plugname))
+        if(ref.info->plugname && !strcmp(name, ref.info->plugname))
             return i;
     }
     return -1;
@@ -843,15 +860,16 @@ int get_actor_index()
 
 void finalizeActor(const char *actor)
 {
-    pthread_mutex_lock(&v.mutex);
     v.bin->switch_actor((char *)actor);
-    pthread_mutex_unlock(&v.mutex);
 }
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev)
 {
+    
+    pthread_mutex_lock(&v.mutex);
     v_cycleActor(prev);
     finalizeActor(v.actor_name);
+    pthread_mutex_unlock(&v.mutex);
     return get_actor_index();
 }
 
