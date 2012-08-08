@@ -52,7 +52,7 @@ import java.lang.Process;
 import java.lang.CharSequence;
 
 import org.libvisual.android.VisualObject;
-//import net.starlon.libscriptable.UtilsEvaluator;
+import net.starlon.libscriptable.UtilsEvaluator;
 
 public class DroidVisualsActivity extends Activity implements OnClickListener, OnSharedPreferenceChangeListener
 {
@@ -135,7 +135,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
     private Stats mStats = new Stats();
     private VisualObject mVisualObject;
-    //private UtilsEvaluator mEvaluator;
+    private UtilsEvaluator mEvaluator;
 
     public final Object mSynch = new Object();
 
@@ -144,12 +144,10 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         return mVisualObject;
     }
 
-/*
     public UtilsEvaluator getEvaluator()
     {
         return mEvaluator;
     }
-*/
 
     private void makeFile(String file, int id)
     {
@@ -184,72 +182,12 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         if(mViewGL != null) mViewGL.setKeepScreenOn(truth);
     }
 
-    private boolean detectGL20()
+    private boolean detectGL10()
     {
         ActivityManager am =
             (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo info = am.getDeviceConfigurationInfo();
-        return (info.reqGlEsVersion >= 0x20000 && mUseGL);
-    }
-
-    public void getPrefs()
-    {
-        mActor = mPrefs.getString("prefs_actor_selection", ACTOR);
-        mInput = mPrefs.getString("prefs_input_selection", INPUT);
-        mMorph = mPrefs.getString("prefs_morph_selection", MORPH);
-        mDoMorph = mPrefs.getBoolean("prefs_morph_enabled", DOMORPH);
-        mDoBeat = mPrefs.getBoolean("prefs_do_beat", DOBEAT);
-        mDoSwap = mPrefs.getBoolean("prefs_do_swap", DOSWAP);
-        mDoMorph = mPrefs.getBoolean("prefs_do_morph", DOMORPH);
-        mMorphSteps = mPrefs.getInt("prefs_morph_steps", MORPHSTEPS);
-        mMaxFPS = mPrefs.getInt("prefs_max_fps", MAXFPS);
-        mShowFPS = mPrefs.getBoolean("prefs_show_fps", SHOWFPS);
-        mShowArt = mPrefs.getBoolean("prefs_show_art", SHOWART);
-        mShowText = mPrefs.getBoolean("prefs_show_text", SHOWTEXT);
-        mIsActive = mPrefs.getBoolean("prefs_is_active", ISACTIVE);
-        mUseGL = mPrefs.getBoolean("prefs_use_gl", USEGL);
-    }
-
-/* This causes all sorts of issues. Leaving it for now.
-    public void setPrefs()
-    {
-        mEditor.putString("prefs_actor_selection", mActor);
-        mEditor.putString("prefs_input_selection", mInput);
-        mEditor.putString("prefs_morph_selection", mMorph);
-        mEditor.putBoolean("prefs_do_beat", mDoBeat);
-        mEditor.putBoolean("prefs_do_swap", mDoSwap);
-        mEditor.putBoolean("prefs_do_morph", mDoMorph);
-        mEditor.putBoolean("prefs_do_beat", mDoBeat);
-        mEditor.putInt("prefs_morph_steps", mMorphSteps);
-        mEditor.putInt("prefs_max_fps", mMaxFPS);
-        mEditor.putBoolean("prefs_show_fps", mShowFPS);
-        mEditor.putBoolean("prefs_show_art", mShowArt);
-        mEditor.putBoolean("prefs_show_text", mShowText);
-        mEditor.putBoolean("prefs_is_active", mIsActive);
-        mEditor.putBoolean("prefs_use_gl", mUseGL);
-
-        mEditor.commit();
-    }
-*/
-
-    public void resetPrefs()
-    {
-        mEditor.putString("prefs_actor_selection", ACTOR);
-        mEditor.putString("prefs_input_selection", INPUT);
-        mEditor.putString("prefs_morph_selection", MORPH);
-        mEditor.putBoolean("prefs_do_beat", DOBEAT);
-        mEditor.putBoolean("prefs_do_swap", DOSWAP);
-        mEditor.putBoolean("prefs_do_morph", DOMORPH);
-        mEditor.putBoolean("prefs_do_beat", DOBEAT);
-        mEditor.putInt("prefs_morph_steps", MORPHSTEPS);
-        mEditor.putInt("prefs_max_fps", MAXFPS);
-        mEditor.putBoolean("prefs_show_fps", SHOWFPS);
-        mEditor.putBoolean("prefs_show_art", SHOWART);
-        mEditor.putBoolean("prefs_show_text", SHOWTEXT);
-        mEditor.putBoolean("prefs_is_active", ISACTIVE);
-        mEditor.putBoolean("prefs_use_gl", USEGL);
-
-        mEditor.commit();
+        return (info.reqGlEsVersion >= 0x10000);
     }
 
     /** Called when the activity is first created. */
@@ -303,13 +241,13 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Left swipe
                                 Log.w(TAG, "Left swipe...");
-                                NativeHelper.finalizeSwitch(-1);
+                                NativeHelper.finalizeSwitch(-1, true);
                                 //actor = NativeHelper.actorGetCurrent();
                             }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && 
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Right swipe
                                 Log.w(TAG, "Right swipe...");
-                                NativeHelper.finalizeSwitch(1);
+                                NativeHelper.finalizeSwitch(1, true);
                                 //actor = NativeHelper.actorGetCurrent();
                             }
                         } else {
@@ -319,14 +257,14 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Up swipe
                                 Log.w(TAG, "Up swipe...");
-                                NativeHelper.finalizeSwitch( -2 );
+                                NativeHelper.finalizeSwitch( -2, true);
                                 //actor = NativeHelper.actorGetCurrent();
                             } else if (actor == -1 && e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE &&
                                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Down swipe
 
                                 Log.w(TAG, "Down swipe...");
-                                NativeHelper.finalizeSwitch( 2 );
+                                NativeHelper.finalizeSwitch( 2, true);
                                 //actor = NativeHelper.actorGetCurrent();
                             }
                         }
@@ -428,7 +366,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
     public void setUseGL(boolean truth)
     {
-            if(detectGL20())
+            if(detectGL10())
             {
                 mRendererGLVis = new DroidVisualsRenderer(this);
         
@@ -535,7 +473,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
 
         super.onResume();
 
-        if(detectGL20())
+        if(detectGL10())
             mViewGL.onResume();
 
     }
@@ -573,7 +511,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
     {
         super.onPause();
 
-        if(detectGL20())
+        if(detectGL10())
             mViewGL.onPause();
 
         releaseAlbumArt();
@@ -684,7 +622,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         System.loadLibrary("orc");
         System.loadLibrary("visual");
         System.loadLibrary("luascript");
-        System.loadLibrary("json");
+        //System.loadLibrary("json");
         //System.loadLibrary("scriptable");
         System.loadLibrary("main");
     }
@@ -1215,6 +1153,66 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
             }
         }
         return null;
+    }
+
+    public void getPrefs()
+    {
+        mActor = mPrefs.getString("prefs_actor_selection", ACTOR);
+        mInput = mPrefs.getString("prefs_input_selection", INPUT);
+        mMorph = mPrefs.getString("prefs_morph_selection", MORPH);
+        mDoMorph = mPrefs.getBoolean("prefs_morph_enabled", DOMORPH);
+        mDoBeat = mPrefs.getBoolean("prefs_do_beat", DOBEAT);
+        mDoSwap = mPrefs.getBoolean("prefs_do_swap", DOSWAP);
+        mDoMorph = mPrefs.getBoolean("prefs_do_morph", DOMORPH);
+        mMorphSteps = mPrefs.getInt("prefs_morph_steps", MORPHSTEPS);
+        mMaxFPS = mPrefs.getInt("prefs_max_fps", MAXFPS);
+        mShowFPS = mPrefs.getBoolean("prefs_show_fps", SHOWFPS);
+        mShowArt = mPrefs.getBoolean("prefs_show_art", SHOWART);
+        mShowText = mPrefs.getBoolean("prefs_show_text", SHOWTEXT);
+        mIsActive = mPrefs.getBoolean("prefs_is_active", ISACTIVE);
+        mUseGL = mPrefs.getBoolean("prefs_use_gl", USEGL);
+    }
+
+/* This causes all sorts of issues. Leaving it for now.
+    public void setPrefs()
+    {
+        mEditor.putString("prefs_actor_selection", mActor);
+        mEditor.putString("prefs_input_selection", mInput);
+        mEditor.putString("prefs_morph_selection", mMorph);
+        mEditor.putBoolean("prefs_do_beat", mDoBeat);
+        mEditor.putBoolean("prefs_do_swap", mDoSwap);
+        mEditor.putBoolean("prefs_do_morph", mDoMorph);
+        mEditor.putBoolean("prefs_do_beat", mDoBeat);
+        mEditor.putInt("prefs_morph_steps", mMorphSteps);
+        mEditor.putInt("prefs_max_fps", mMaxFPS);
+        mEditor.putBoolean("prefs_show_fps", mShowFPS);
+        mEditor.putBoolean("prefs_show_art", mShowArt);
+        mEditor.putBoolean("prefs_show_text", mShowText);
+        mEditor.putBoolean("prefs_is_active", mIsActive);
+        mEditor.putBoolean("prefs_use_gl", mUseGL);
+
+        mEditor.commit();
+    }
+*/
+
+    public void resetPrefs()
+    {
+        mEditor.putString("prefs_actor_selection", ACTOR);
+        mEditor.putString("prefs_input_selection", INPUT);
+        mEditor.putString("prefs_morph_selection", MORPH);
+        mEditor.putBoolean("prefs_do_beat", DOBEAT);
+        mEditor.putBoolean("prefs_do_swap", DOSWAP);
+        mEditor.putBoolean("prefs_do_morph", DOMORPH);
+        mEditor.putBoolean("prefs_do_beat", DOBEAT);
+        mEditor.putInt("prefs_morph_steps", MORPHSTEPS);
+        mEditor.putInt("prefs_max_fps", MAXFPS);
+        mEditor.putBoolean("prefs_show_fps", SHOWFPS);
+        mEditor.putBoolean("prefs_show_art", SHOWART);
+        mEditor.putBoolean("prefs_show_text", SHOWTEXT);
+        mEditor.putBoolean("prefs_is_active", ISACTIVE);
+        mEditor.putBoolean("prefs_use_gl", USEGL);
+
+        mEditor.commit();
     }
 
 

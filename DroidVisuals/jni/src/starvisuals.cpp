@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_setMorphStyle(
 // Increment or decrement actor and morph
 // Variable 'prev' is used to shift morph plugin around.
 // 0=left, 1=right, 2=up, 3=down, 4=cycle.. Any other and the current value is used.
-JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSwitch(JNIEnv * env, jobject obj, jint prev)
+JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSwitch(JNIEnv * env, jobject obj, jint prev, jboolean nogl)
 {
 
     int depthflag;
@@ -74,7 +74,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
 
     visual_log(VISUAL_LOG_INFO, "Switching actors %s -> %s", morph, v.morph_name);
 
-    v_cycleActor((int)prev);
+    v_cycleActor((int)prev, (bool)nogl);
     //bin->set_morph(v.morph_name);
     v.bin->switch_actor(v.actor_name);
 

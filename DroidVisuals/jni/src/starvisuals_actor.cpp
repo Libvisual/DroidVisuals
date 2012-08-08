@@ -1,19 +1,24 @@
 
 #include "starvisuals.h"
 
-extern "C" {
 // ------ ACTORS ------
-void v_cycleActor (int prev)
+void v_cycleActor (int prev, bool nogl = false)
 {
     if(v.bin == NULL)
         return;
 
     const char *str = v.actor_name;
 
-    v.actor_name = prev ? visual_actor_get_prev_by_name(str)
-                        : visual_actor_get_next_by_name(str);
+    if(nogl)
+        v.actor_name = prev ? visual_actor_get_prev_by_name_nogl(str)
+                            : visual_actor_get_next_by_name_nogl(str);
+    else
+        v.actor_name = prev ? visual_actor_get_prev_by_name(str)
+                            : visual_actor_get_next_by_name(str);
     
 }
+
+extern "C" {
 
 // Get the VisActor at the requested index.
 LV::PluginRef &get_actor(int index)
@@ -52,11 +57,11 @@ void finalizeActor(const char *actor)
     v.bin->switch_actor((char *)actor);
 }
 
-JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev)
+JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev, jboolean nogl)
 {
     
     pthread_mutex_lock(&v.mutex);
-    v_cycleActor(prev);
+    v_cycleActor(prev, (bool)nogl);
     finalizeActor(v.actor_name);
     pthread_mutex_unlock(&v.mutex);
     return get_actor_index();

@@ -280,7 +280,7 @@ public class DroidVisualsView extends View {
     {
         mLock.lock();
         Log.i(TAG, "Switch scene....");
-        NativeHelper.finalizeSwitch(prev);
+        NativeHelper.finalizeSwitch(prev, true);
         mLock.unlock();
     }
 

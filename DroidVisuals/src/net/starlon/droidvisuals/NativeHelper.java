@@ -92,8 +92,8 @@ public class NativeHelper
     /* Switch plugins */
     public static native int cycleInput(int prev);
     public static native int cycleMorph(int prev);
-    public static native int cycleActor(int prev);
-    public static native void finalizeSwitch(int prev);
+    public static native int cycleActor(int prev, boolean nogl);
+    public static native void finalizeSwitch(int prev, boolean nogl);
     public static native void setMorphStyle(boolean style);
     public static native void updatePlugins();
 
