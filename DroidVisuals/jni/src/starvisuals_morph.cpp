@@ -1,5 +1,7 @@
 // ------ MORPH ------
 
+#include "starvisuals.h"
+
 extern "C" {
 
 // Get the VisMorph at the requested index.

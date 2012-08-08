@@ -1,3 +1,7 @@
+
+#include "starvisuals.h"
+
+extern "C" {
 // ------ ACTORS ------
 void v_cycleActor (int prev)
 {
@@ -418,5 +422,6 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
     return !ret;
 }
 #endif
+
 
 } // extern "C"
