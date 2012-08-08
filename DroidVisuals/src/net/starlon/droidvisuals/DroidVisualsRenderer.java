@@ -38,17 +38,19 @@ import java.nio.ByteOrder;
 
 import org.libvisual.android.VisualObject;
 
+class Dimension {
+    public static int textureWidth = 128;
+    public static int textureHeight = 128;
+    public static int surfaceWidth;
+    public static int surfaceHeight;
+}
+
 public class DroidVisualsRenderer implements Renderer {
     private Visual vis;
     public VisualObject mVisualObject;
-    private int mSurfaceWidth;
-    private int mSurfaceHeight;
-    public int mTextureWidth = 128;
-    public int mTextureHeight = 128;
     private Stats mStats;
     private DroidVisualsActivity mActivity;
     private boolean mInited = false;
-    private Bitmap mBitmap;
 
     public DroidVisualsRenderer(Context context) {
         vis = new Visual((DroidVisualsActivity)context, this);
@@ -70,24 +72,23 @@ public class DroidVisualsRenderer implements Renderer {
     @Override
     public void onDrawFrame(GL10 gl10) {
         mStats.startFrame();
-        //NativeHelper.renderBitmap(mBitmap, mActivity.getDoSwap());
-        vis.performFrame(gl10, mSurfaceWidth, mSurfaceHeight);
+        vis.performFrame(gl10);
         mStats.endFrame();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
-        vis.initialize(gl10, width, height);
         //mVisualObject.onSizeChanged(width, height, mSurfaceWidth, mSurfaceHeight);
-        mSurfaceWidth = width;
-        mSurfaceHeight = height;
-        //mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Dimension.surfaceWidth = width;
+        Dimension.surfaceHeight = height;
+
+        vis.initialize(gl10);
 
         String actor = mActivity.getActor();
         String input = mActivity.getInput();
         String morph = mActivity.getMorph();
 
-        NativeHelper.initApp(mTextureWidth, mTextureHeight, actor, input, morph );
+        NativeHelper.initApp(Dimension.textureWidth, Dimension.textureHeight, actor, input, morph );
     }
 
     @Override
@@ -116,8 +117,6 @@ public class DroidVisualsRenderer implements Renderer {
 
 final class Visual {
     private VisualObject mVisualObject;
-    private int mTextureWidth = 128;
-    private int mTextureHeight = 128;
     private ByteBuffer mPixelBuffer;
     private static final int bytesPerPixel = 4;
     private int mTextureId = -1;
@@ -173,20 +172,21 @@ final class Visual {
         mTextureBuffer.position(0);
     }
 
-    public void initialize(GL10 gl, int surfaceWidth, int surfaceHeight) {
-        mTextureWidth = surfaceWidth;
-        mTextureHeight = surfaceHeight;
+    public void initialize(GL10 gl) {
 
         mGL10 = gl;
 
+        int textureWidth = Dimension.textureWidth;
+        int textureHeight = Dimension.textureHeight;
+
         textureCrop[0] = 0;
         textureCrop[1] = 0;
-        textureCrop[2] = mTextureWidth;
-        textureCrop[3] = mTextureHeight;
+        textureCrop[2] = Dimension.textureWidth;
+        textureCrop[3] = Dimension.textureHeight;
 
         mCanvas = new Canvas();
         
-        mBitmap = Bitmap.createBitmap(mTextureWidth, mTextureHeight, Bitmap.Config.ARGB_8888);
+        mBitmap = Bitmap.createBitmap(textureWidth, textureHeight, Bitmap.Config.ARGB_8888);
 
         mCanvas.setBitmap(mBitmap);
 
@@ -200,14 +200,7 @@ final class Visual {
         mPaint.setTextAlign(Paint.Align.CENTER);
 
         // init the pixel buffer
-        mPixelBuffer = ByteBuffer.allocate(mTextureWidth * mTextureHeight * bytesPerPixel);
-
-        // init the GL settings
-        if (glInited) {
-            //resetGl();
-        }
-
-        //initGl(surfaceWidth, surfaceHeight);
+        mPixelBuffer = ByteBuffer.allocate(textureWidth * textureHeight * bytesPerPixel);
 
         // init the GL texture
         initGlTexture();
@@ -287,7 +280,7 @@ final class Visual {
             float textWidth = mPaint.measureText(text);
             float startPositionX = (canvasWidth - textWidth / 2) / 2;
     
-            mCanvas.drawText(text, startPositionX, mTextureHeight-18, mPaint);
+            mCanvas.drawText(text, startPositionX, Dimension.textureHeight-18, mPaint);
         }
 
         // Copy bitmap pixels into buffer.
@@ -338,7 +331,10 @@ final class Visual {
         //updatePixels();
 
         // and init the GL texture with the pixels
-        mGL10.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, mTextureWidth, mTextureHeight,
+        int width = Dimension.textureWidth;
+        int height = Dimension.textureHeight;
+
+        mGL10.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height,
                 0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBuffer);        
 
 
@@ -349,7 +345,7 @@ final class Visual {
     
 
 
-    public void performFrame(GL10 gl, int surfaceWidth, int surfaceHeight) {
+    public void performFrame(GL10 gl) {
 
         if(mGL10 != gl)
             mGL10 = gl;
@@ -366,8 +362,12 @@ final class Visual {
             }
         }
 
-        initGl(surfaceWidth, surfaceHeight);
+        int surfaceWidth = Dimension.surfaceWidth;
+        int surfaceHeight = Dimension.surfaceHeight;
+        int textureHeight = Dimension.textureHeight;
+        int textureWidth = Dimension.textureWidth;
 
+        initGl(surfaceWidth, surfaceHeight);
 
         // Clear the surface
         mGL10.glClearColorx(0, 0, 0, 0);
@@ -389,7 +389,7 @@ final class Visual {
         mGL10.glBindTexture(GL10.GL_TEXTURE_2D, mTextureId);
 
         // Update the texture
-        mGL10.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, mTextureWidth, mTextureHeight, 
+        mGL10.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, 
                            GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, mPixelBuffer);
         
 

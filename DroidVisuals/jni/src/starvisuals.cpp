@@ -276,7 +276,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
 
-    if(v.bin->depth_changed()  || 
+    if(v.bin->depth_changed() && v.bin->get_depth() != VISUAL_VIDEO_DEPTH_GL  || 
         ((int)info.width != v.video->get_width() || 
         (int)info.height != v.video->get_height()) ) 
     {
@@ -284,9 +284,6 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         depthflag = v.bin->get_depth();
 
         depth = visual_video_depth_get_highest(depthflag);
-
-        if((v.pluginIsGL = (depthflag == VISUAL_VIDEO_DEPTH_GL)))
-            depth = VISUAL_VIDEO_DEPTH_GL;
         
         if(v.video->has_allocated_buffer())
             v.video->free_buffer();
@@ -294,18 +291,15 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         v.video->set_dimension(info.width, info.height);
         v.video->set_depth(depth);
 
-        if(not v.pluginIsGL)
-        {
-            v.video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);
-            v.video->allocate_buffer();
-        }
+        v.video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);
+        v.video->allocate_buffer();
         v.bin->sync(true);
     }
 
     v.bin->run();
 
     if (not v.pluginIsGL ) {
-        //vid->convert_depth(v.video);
+        vid->convert_depth(v.video);
     }
 
     vid->unref();
