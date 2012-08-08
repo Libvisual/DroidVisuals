@@ -304,13 +304,13 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                 // Left swipe
                                 Log.w(TAG, "Left swipe...");
                                 NativeHelper.finalizeSwitch(-1);
-                                actor = NativeHelper.actorGetCurrent();
+                                //actor = NativeHelper.actorGetCurrent();
                             }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && 
                                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Right swipe
                                 Log.w(TAG, "Right swipe...");
                                 NativeHelper.finalizeSwitch(1);
-                                actor = NativeHelper.actorGetCurrent();
+                                //actor = NativeHelper.actorGetCurrent();
                             }
                         } else {
                             if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
@@ -320,22 +320,24 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
                                 // Up swipe
                                 Log.w(TAG, "Up swipe...");
                                 NativeHelper.finalizeSwitch( -2 );
-                                actor = NativeHelper.actorGetCurrent();
+                                //actor = NativeHelper.actorGetCurrent();
                             } else if (actor == -1 && e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE &&
                                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
                                 // Down swipe
 
                                 Log.w(TAG, "Down swipe...");
                                 NativeHelper.finalizeSwitch( 2 );
-                                actor = NativeHelper.actorGetCurrent();
+                                //actor = NativeHelper.actorGetCurrent();
                             }
                         }
+/*
                         if(actor >= 0)
                         {
                             mActor = NativeHelper.actorGetName(actor);
                             mEditor.putString("prefs_actor_selection", mActor);
                             mEditor.commit();
                         }
+*/
                     } catch (Exception e) {
                         Log.w(TAG, "Failure in onFling: " + e.toString());
                         // nothing

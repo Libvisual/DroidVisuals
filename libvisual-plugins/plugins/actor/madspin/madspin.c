@@ -195,8 +195,8 @@ static void bind_texture (GLuint texture, VisVideo *image)
 	glBindTexture (GL_TEXTURE_2D, texture);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D (GL_TEXTURE_2D, 0, 3, visual_video_get_width (image), visual_video_get_height (image), 0,
-		      GL_RGB, GL_UNSIGNED_BYTE, visual_video_get_pixels (image));
+	glTexImage2D (GL_TEXTURE_2D, 0, 4, visual_video_get_width (image), visual_video_get_height (image), 0,
+		      GL_RGBA, GL_UNSIGNED_BYTE, visual_video_get_pixels (image));
 }
 
 static void lv_madspin_setup_gl (VisPluginData *plugin)
@@ -289,18 +289,45 @@ static int lv_madspin_render (VisPluginData *plugin, VisVideo *video, VisAudio *
 
 static int madspin_load_textures (MadspinPrivate *priv)
 {
-	priv->texture_images[0] = visual_video_load_from_file (STAR_DIR "/star1.bmp");
-	if (!priv->texture_images[0]) {
+    VisVideo *init1 = visual_video_load_from_file (STAR_DIR "/star1.bmp");
+    int width1 = visual_video_get_width(init1);
+    int height1 = visual_video_get_height(init1);
+    VisVideo *bit241 = visual_video_new_with_buffer(width1, height1, VISUAL_VIDEO_DEPTH_24BIT); 
+	if (bit241) {
 		visual_log (VISUAL_LOG_ERROR, "Failed to load first texture");
 		return -1;
 	}
 
-	priv->texture_images[1] = visual_video_load_from_file (STAR_DIR "/star2.bmp");
-	if (!priv->texture_images[1]) {
+    VisVideo *init2 = visual_video_load_from_file (STAR_DIR "/star2.bmp");
+    int width2 = visual_video_get_width(init2);
+    int height2 = visual_video_get_height(init2);
+    VisVideo *bit242 = visual_video_new_with_buffer(width2, height2, VISUAL_VIDEO_DEPTH_24BIT); 
+	if (bit242) {
 		visual_log (VISUAL_LOG_ERROR, "Failed to load second texture");
 		return -1;
 	}
 
+    visual_video_flip_pixel_bytes(bit241, init1);
+    visual_video_flip_pixel_bytes(bit242, init2);
+
+    priv->texture_images[0] = visual_video_new_with_buffer(width1, height1, VISUAL_VIDEO_DEPTH_32BIT);
+
+    priv->texture_images[1] = visual_video_new_with_buffer(width2, height2, VISUAL_VIDEO_DEPTH_32BIT);
+
+    visual_video_convert_depth(priv->texture_images[0], bit241);
+    visual_video_convert_depth(priv->texture_images[1], bit242);
+
+    visual_video_free_buffer(init1);
+    visual_video_free_buffer(init2);
+
+    visual_video_free_buffer(bit241);
+    visual_video_free_buffer(bit242);
+
+    visual_object_unref(VISUAL_OBJECT(init1));
+    visual_object_unref(VISUAL_OBJECT(init2));
+
+    visual_object_unref(VISUAL_OBJECT(bit241));
+    visual_object_unref(VISUAL_OBJECT(bit242));
 	return 0;
 }
 

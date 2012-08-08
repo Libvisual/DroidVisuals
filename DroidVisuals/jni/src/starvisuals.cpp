@@ -35,15 +35,28 @@ static void my_log_handler(VisLogSeverity severity, const char *msg, const VisLo
 extern "C" {
 
 
+// Set the VisBin's morph style -- to morph or not to morph.
+JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_setMorphStyle(JNIEnv * env, jobject  obj, jboolean morph)
+{
+    if(morph)
+        visual_bin_switch_set_style(v.bin, VISUAL_SWITCH_STYLE_MORPH);
+    else
+        visual_bin_switch_set_style(v.bin, VISUAL_SWITCH_STYLE_DIRECT);
+}
+
+
 // Increment or decrement actor and morph
 // Variable 'prev' is used to shift morph plugin around.
 // 0=left, 1=right, 2=up, 3=down, 4=cycle.. Any other and the current value is used.
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSwitch(JNIEnv * env, jobject obj, jint prev)
 {
 
+    int depthflag;
+    VisVideoDepth depth;
     pthread_mutex_lock(&v.mutex);
     VisMorph *bin_morph = visual_bin_get_morph(v.bin);
     const char *morph = v.morph_name;
+    const char *actor = v.actor_name;
 
     
     if(bin_morph && !visual_morph_is_done(bin_morph))
@@ -62,10 +75,28 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
     visual_log(VISUAL_LOG_INFO, "Switching actors %s -> %s", morph, v.morph_name);
 
     v_cycleActor((int)prev);
-    //visual_bin_set_morph(v.bin, (char *)v.morph_name);
-    visual_bin_switch_actor_by_name(v.bin, (char *)v.actor_name);
+    //bin->set_morph(v.morph_name);
+    v.bin->switch_actor(v.actor_name);
+
+    // handle depth of new actor
+    depthflag = visual_actor_get_supported_depth(v.bin->get_actor());
+    if (depthflag == VISUAL_VIDEO_DEPTH_GL)
+    {
+        v.bin->set_depth(VISUAL_VIDEO_DEPTH_GL);
+    }
+    else
+    {
+        depth = visual_video_depth_get_highest(depthflag);
+        if ((v.bin->get_supported_depth() & depth) > 0)
+            v.bin->set_depth(depth);
+        else
+            v.bin->set_depth(visual_video_depth_get_highest_nogl(v.bin->get_supported_depth()));
+    }
+    v.bin->force_actor_depth (v.bin->get_depth ());
+
     pthread_mutex_unlock(&v.mutex);
 
+    visual_log(VISUAL_LOG_DEBUG, "finalizeSwitch() - old %s, new %s", actor, v.actor_name);
     return TRUE;
 }
 

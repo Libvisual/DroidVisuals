@@ -233,6 +233,8 @@ final class Visual {
 
     public void resize(GL10 gl10)
     {
+        mGL10 = gl10;
+
         int textureWidth = Dimension.textureWidth;
         int textureHeight = Dimension.textureHeight;
         int surfaceWidth = Dimension.surfaceWidth;
@@ -248,18 +250,6 @@ final class Visual {
  
         gl10.glViewport(0, 0, surfaceWidth, surfaceHeight);
        
-    }
-    public void resetGl() {
-        if(!glInited || mGL10 == null) return;
-
-        glInited = false;
-
-        mGL10.glMatrixMode(GL10.GL_PROJECTION);
-        mGL10.glPopMatrix();
-        mGL10.glMatrixMode(GL10.GL_TEXTURE);
-        mGL10.glPopMatrix();
-        mGL10.glMatrixMode(GL10.GL_MODELVIEW);
-        mGL10.glPopMatrix();
     }
 
     public void destroy()
@@ -302,6 +292,19 @@ final class Visual {
         mGL10.glPushMatrix();
 
         glInited = true;
+    }
+
+    public void resetGl() {
+        if(!glInited || mGL10 == null) return;
+
+        glInited = false;
+
+        mGL10.glMatrixMode(GL10.GL_PROJECTION);
+        mGL10.glPopMatrix();
+        mGL10.glMatrixMode(GL10.GL_TEXTURE);
+        mGL10.glPopMatrix();
+        mGL10.glMatrixMode(GL10.GL_MODELVIEW);
+        mGL10.glPopMatrix();
     }
 
     public void updatePixels()
