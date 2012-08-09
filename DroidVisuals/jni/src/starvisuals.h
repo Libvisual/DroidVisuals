@@ -123,7 +123,7 @@ class V {
         bin->switch_set_rate(1.0f);
         bin->switch_set_mode(VISUAL_MORPH_MODE_TIME);
 
-        LV::Time time(1, 10000);
+        LV::Time time(2, 0);
         bin->switch_set_time(time);
     
         video = LV::Video::create(w, h, depth);
@@ -132,7 +132,6 @@ class V {
     
         bin->connect(actor, input);
     
-
         bin->realize();
     
         //bin->set_morph(morph_);
@@ -141,6 +140,7 @@ class V {
 
         pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
 
+        visual_log (VISUAL_LOG_INFO, "Libvisual version %s; bpp: %d %s\n", visual_get_version(), video->get_bpp(), (pluginIsGL ? "(GL)\n" : ""));
 
     }
 

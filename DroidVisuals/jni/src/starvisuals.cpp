@@ -146,11 +146,6 @@ JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_initApp(JNIEnv
 
 void app_main(int w, int h, const std::string &actor_, const std::string &input_, const std::string &morph_)
 {
-
-    int depthflag;
-    VisVideoDepth depth;
-
-
     if(!visual_is_initialized())
     {
         visual_log_set_verbosity (VISUAL_LOG_DEBUG);
@@ -170,7 +165,6 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
 
     v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_DIRECT);
 
-    visual_log (VISUAL_LOG_CRITICAL, "Libvisual version %s; bpp: %d %s\n", visual_get_version(), v->video->get_bpp(), (v->pluginIsGL ? "(GL)\n" : ""));
 
 }
 
@@ -205,8 +199,6 @@ void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
 // Render the view's bitmap image.
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap)
 {
-
-    return true;
     AndroidBitmapInfo  info;
     void*              pixels;
     int                ret;
