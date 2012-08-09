@@ -23,12 +23,12 @@ install_dev:
 	@adb -d install -r bin/$(APPNAME).apk
 
 debug:
-	@ndk-build BUILD_TYPE=debug USLEEP=-DUSLEEP=240000 V=1
+	@ndk-build BUILD_TYPE=debug V=1
 	@ant clean
 	@ant debug
 
 debug_emu:
-	@ndk-build BUILD_TYPE=debug USLEEP=-DUSLEEP=240000
+	@ndk-build BUILD_TYPE=debug V=1
 	@adb -e install -r bin/$(APPNAME)-debug.apk
 
 install_debug: 
@@ -55,14 +55,6 @@ keygen:
 sign:
 	@jarsigner -keystore my.keystore bin/$(ACTIVITY)-release-unsigned.apk $(APPNAME)_key
 	@zipalign -v 4 bin/$(ACTIVITY)-release-unsigned.apk bin/$(APPNAME).apk
-
-log:
-	@adb pull /data/data/com.starlon.droidvisuals/lib/ lyrical/data/data/com.starlon.droidvisuals/
-	@/opt/arm-2011.09/bin/arm-none-linux-gnueabi-objdump -S obj/local/armeabi/libvisual.so > libdroidvisuals.asm
-	@adb shell logcat -d > test.log
-	@./tools/stack.py --symbols-dir=./lyrical/ ./test.log 
-	#@./tools/parse_stack.py ./libdroidvisuals.asm ./test.log
-	@adb shell dumpsys meminfo -h > meminfo.txt
 
 gdb:
 	@ndk-gdb --start --force --verbose

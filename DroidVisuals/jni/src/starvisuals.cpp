@@ -117,11 +117,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_getIsActiv
 
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorIsGL(JNIEnv *env, jobject obj)
 {
-    return false;
-    //pthread_mutex_lock(&v->mutex);
-    VisVideoDepth depth = v->bin->get_depth();
-    //pthread_mutex_lock(&v->mutex);
-    if(depth == VISUAL_VIDEO_DEPTH_GL)
+    if(v->bin->get_depth() == VISUAL_VIDEO_DEPTH_GL)
         return true;
     return false;
 }

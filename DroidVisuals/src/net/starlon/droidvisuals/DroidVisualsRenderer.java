@@ -1,5 +1,7 @@
 package net.starlon.droidvisuals;
 
+import android.app.ActivityManager.MemoryInfo;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.util.Log;
 import android.graphics.Bitmap;
@@ -51,6 +53,7 @@ public class DroidVisualsRenderer implements Renderer {
     private Stats mStats;
     private DroidVisualsActivity mActivity;
     private boolean mInited = false;
+    private ActivityManager mAM;
 
     public DroidVisualsRenderer(Context context) {
         vis = new Visual((DroidVisualsActivity)context, this);
@@ -58,6 +61,8 @@ public class DroidVisualsRenderer implements Renderer {
         mStats.statsInit();
         mActivity = (DroidVisualsActivity)context;
         //mVisualObject = mActivity.getVisualObject();
+        mAM = (ActivityManager) mActivity.getSystemService(Context.ACTIVITY_SERVICE);
+
     }
 
     public void destroy()
@@ -102,6 +107,9 @@ public class DroidVisualsRenderer implements Renderer {
                 String input = mActivity.getInput();
                 String morph = mActivity.getMorph();
         
+                // We do this twice for GL actors. Ugly yeah. initApp creates the original actor, 
+                // so we need to see if it the actor is GL after it's already been created.
+                // Something to refactor later. FIXME
                 NativeHelper.initApp(Dimension.textureWidth, Dimension.textureHeight, actor, input, morph, true);
                 if(NativeHelper.actorIsGL())
                     NativeHelper.initApp(Dimension.surfaceWidth, Dimension.surfaceHeight, actor, input, morph, true);
@@ -117,9 +125,12 @@ public class DroidVisualsRenderer implements Renderer {
 
         TimerTask task = new TimerTask() {
             public void run() {
+                MemoryInfo mi = new MemoryInfo();
                 synchronized(mActivity.mSynch)
                 {
-                    mActivity.warn(mStats.getText(), true);
+                    mAM.getMemoryInfo(mi);
+                    mActivity.warn("MEM avail: " + mi.availMem, true);
+                    //mActivity.warn(mStats.getText(), true);
                 }
             }
         };
@@ -248,6 +259,8 @@ final class Visual {
         mBitmapTexture = Bitmap.createBitmap(textureWidth, textureHeight, Bitmap.Config.ARGB_8888);
         mBitmapSurface = Bitmap.createBitmap(surfaceWidth, surfaceHeight, Bitmap.Config.ARGB_8888);
  
+        mCanvas.setBitmap(mBitmapTexture);
+
         gl10.glViewport(0, 0, surfaceWidth, surfaceHeight);
        
     }
