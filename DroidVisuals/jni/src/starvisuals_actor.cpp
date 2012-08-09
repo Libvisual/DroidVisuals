@@ -27,36 +27,15 @@ void v_cycleActor (int prev, bool nogl)
     v->actor_name = (std::string)name;
 
 /*
-    if (strstr (exclude_actors.c_str(), name) != 0)
+    if (strstr (v->exclude_actors.c_str(), name) != 0)
         v_cycleActor(prev);
 */
 }
 
-// ------ ACTORS ------
-/*
-void v_cycleActor (int prev, bool nogl = false)
+void finalizeActor(std::string actor)
 {
-    if(v->bin == NULL)
-        return;
-
-    const char *str = v->actor_name;
-
-    if(nogl)
-        str = prev ? visual_actor_get_prev_by_name_nogl(str)
-                            : visual_actor_get_next_by_name_nogl(str);
-    else
-        str = prev ? visual_actor_get_prev_by_name(str)
-                            : visual_actor_get_next_by_name(str);
-    
-    if(str)
-    {
-        free(v->actor_name);
-        v->actor_name = (std::string)(str);
-    }
+    v->bin->switch_actor(actor);
 }
-*/
-
-extern "C" {
 
 // Get the VisActor at the requested index.
 LV::PluginRef &get_actor(int index)
@@ -90,10 +69,9 @@ int get_actor_index()
 
 }
 
-void finalizeActor(std::string actor)
-{
-    v->bin->switch_actor(actor);
-}
+
+extern "C" {
+
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev, jboolean nogl)
 {

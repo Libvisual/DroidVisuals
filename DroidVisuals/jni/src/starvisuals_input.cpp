@@ -2,7 +2,6 @@
 
 extern V *v;
 
-extern "C" {
 
 // Get the VisInput at the requested index.
 LV::PluginRef &get_input(int index)
@@ -71,6 +70,8 @@ void finalizeInput(std::string input)
 */
 }
 
+
+extern "C" {
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleInput(JNIEnv *env, jobject obj, jint prev)
 {

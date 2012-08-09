@@ -4,7 +4,6 @@
 
 extern V *v;
 
-extern "C" {
 
 // Get the VisMorph at the requested index.
 LV::PluginRef &get_morph(int index)
@@ -48,6 +47,7 @@ void v_cycleMorph ()
 
 
 
+extern "C" {
 #if 0
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleMorph(JNIEnv *env, jobject obj, jint prev)
 {

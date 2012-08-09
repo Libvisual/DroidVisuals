@@ -78,7 +78,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
     //Update v->actor_name.
     v_cycleActor((int)prev, (bool)nogl); 
 
-    //bin->set_morph(v->morph_name);
+    //v->bin->set_morph(v->morph_name);
     v->bin->switch_actor(v->actor_name);
 
     // handle depth of new actor

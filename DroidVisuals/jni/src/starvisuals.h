@@ -132,9 +132,9 @@ class V {
     
         bin->connect(actor, input);
     
-        bin->realize();
-    
         //bin->set_morph(morph_);
+
+        bin->realize();
 
         bin->sync(false);
 
@@ -188,7 +188,6 @@ class V {
 
 };
 
-extern "C" {
 LV::PluginRef &get_input(int index);
 void v_cycleInput(int prev);
 int get_input_index();
@@ -203,6 +202,5 @@ LV::PluginRef &get_morph(int index);
 void v_cycleMorph();
 int get_input_morph();
 void finalizeMorph(std::string morph);
-}
 
 #endif
