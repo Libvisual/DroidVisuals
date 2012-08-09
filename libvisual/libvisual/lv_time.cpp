@@ -26,13 +26,12 @@
 #include "config.h"
 #include "lv_time.h"
 #include "lv_common.h"
+#include <thread>
 
 #if defined(VISUAL_OS_WIN32)
 #include <windows.h>
 #else
-#include <unistd.h>
 #include <time.h>
-#include <errno.h>
 #endif
 
 namespace LV {
@@ -52,13 +51,24 @@ namespace LV {
     bool active;
   };
 
-
   void Time::init ()
   {
 #if defined(VISUAL_OS_WIN32)
       LARGE_INTEGER freq;
       QueryPerformanceFrequency (&freq);
       perf_counter_freq = freq.QuadPart;
+#endif
+
+      // Increase timer resolution for fine-grained sleeps
+#if defined(VISUAL_WITH_MINGW) && defined(ENABLE_WIN32_HIGH_RES_SLEEP)
+      timeBeginPeriod (1);
+#endif
+  }
+
+  void Time::deinit ()
+  {
+#if defined(VISUAL_WITH_MINGW) && defined(ENABLE_WIN32_HIGH_RES_SLEEP)
+      timeEndPeriod (1);
 #endif
   }
 
@@ -75,6 +85,18 @@ namespace LV {
       clock_gettime (CLOCK_MONOTONIC, &clock_time);
 
       return Time (clock_time.tv_sec, clock_time.tv_nsec);
+#endif
+  }
+
+  void Time::usleep (uint64_t usecs)
+  {
+#if defined(VISUAL_WITH_MINGW)
+      // MinGW libstdc++'s sleep_for() requires the POSIX function
+      // nanosleep() to work. This is a workaround using the Windows
+      // Sleep() function.
+      Sleep (usecs / VISUAL_USEC_PER_MSEC);
+#else
+      std::this_thread::sleep_for (std::chrono::microseconds (usecs));
 #endif
   }
 
