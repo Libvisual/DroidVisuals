@@ -26,7 +26,7 @@ ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
     LOCAL_ARM_NEON  := true
 endif
 
-LOCAL_SHARED_LIBRARIES := orc
+LOCAL_SHARED_LIBRARIES := orc cpufeatures
 
 LOCAL_ARM_MODE := arm
 
