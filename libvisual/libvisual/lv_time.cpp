@@ -98,13 +98,8 @@ namespace LV {
 #if defined(VISUAL_WITH_MINGW)
       Sleep (usecs / VISUAL_USEC_PER_MSEC);
 #elif defined(VISUAL_OS_ANDROID)
-        
-       
-      timespec spec;
-      spec.tv_sec = 0;
-      spec.tv_nsec = usecs * VISUAL_NSEC_PER_USEC;
-
-      nanosleep (&spec, NULL);
+      timespec request = { usecs / VISUAL_USEC_PER_SEC, usecs * VISUAL_NSEC_PER_USEC };
+      nanosleep (&request, nullptr);
 #else
       std::this_thread::sleep_for (std::chrono::microseconds (usecs));
 #endif

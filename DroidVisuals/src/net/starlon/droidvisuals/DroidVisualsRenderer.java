@@ -1,3 +1,4 @@
+
 package net.starlon.droidvisuals;
 
 import android.app.ActivityManager.MemoryInfo;
@@ -39,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.libvisual.android.VisualObject;
+import net.starlon.libscriptable.UtilsEvaluator;
 
 class Dimension {
     public static int textureWidth = 128;
@@ -52,6 +54,7 @@ public class DroidVisualsRenderer implements Renderer {
     public VisualObject mVisualObject;
     private Stats mStats;
     private DroidVisualsActivity mActivity;
+    private UtilsEvaluator mEvaluator;
     private boolean mInited = false;
     private ActivityManager mAM;
 
@@ -60,6 +63,7 @@ public class DroidVisualsRenderer implements Renderer {
         mStats = new Stats();
         mStats.statsInit();
         mActivity = (DroidVisualsActivity)context;
+        mEvaluator = mActivity.getEvaluator();
         //mVisualObject = mActivity.getVisualObject();
         mAM = (ActivityManager) mActivity.getSystemService(Context.ACTIVITY_SERVICE);
 
@@ -124,13 +128,21 @@ public class DroidVisualsRenderer implements Renderer {
         final Timer timer = new Timer();
 
         TimerTask task = new TimerTask() {
+            boolean useEval = true;
             public void run() {
                 MemoryInfo mi = new MemoryInfo();
                 synchronized(mActivity.mSynch)
                 {
                     mAM.getMemoryInfo(mi);
-                    mActivity.warn("MEM avail: " + mi.availMem, true);
-                    //mActivity.warn(mStats.getText(), true);
+
+                    String val;
+
+                    if(useEval)
+                        val = mEvaluator.eval("return uptime.UptimeFmt('%d d %H:%M:%S')");
+                    else
+                        val = mStats.getText();
+
+                    mActivity.warn(val, true);
                 }
             }
         };
@@ -344,7 +356,8 @@ final class Visual {
         {
             float canvasWidth = mCanvas.getWidth();
             float textWidth = mPaint.measureText(text);
-            float startPositionX = (canvasWidth - textWidth / 2) / 2;
+            float delta = (Dimension.textureWidth - textWidth);
+            float startPositionX = delta/2;
     
             mCanvas.drawText(text, startPositionX, Dimension.textureHeight-18, mPaint);
         }

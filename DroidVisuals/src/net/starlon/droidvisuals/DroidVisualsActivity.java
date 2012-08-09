@@ -208,10 +208,9 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
             WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 
-        //mEvaluator = new UtilsEvaluator();
+        mEvaluator = new UtilsEvaluator();
 
 /*
-        String val = mEvaluator.eval("return LCD.uptime('%d d %H:%M:%S')");
         Log.w(TAG, "HAH " + val);
 */
 
@@ -623,7 +622,7 @@ public class DroidVisualsActivity extends Activity implements OnClickListener, O
         System.loadLibrary("visual");
         System.loadLibrary("luascript");
         //System.loadLibrary("json");
-        //System.loadLibrary("scriptable");
+        System.loadLibrary("scriptable");
         System.loadLibrary("main");
     }
 
