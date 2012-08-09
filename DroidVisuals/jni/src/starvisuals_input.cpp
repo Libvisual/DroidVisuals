@@ -1,5 +1,7 @@
 #include "starvisuals.h"
 
+extern V *v;
+
 extern "C" {
 
 // Get the VisInput at the requested index.
@@ -18,13 +20,17 @@ LV::PluginRef &get_input(int index)
 
 void v_cycleInput(int prev)
 {
-/*
-    v.input_name = visual_input_get_next_by_name(v.input_name);
-    if(!v.input_name)
+    const char *name;
+
+    name = visual_input_get_next_by_name(v->input_name.c_str());
+
+    if(!name)
     {
-        v.input_name = visual_input_get_next_by_name(0);
+        v->input_name = (std::string)visual_input_get_next_by_name(0);
+        return;
     }
-*/
+
+    v->input_name = (std::string)name;
 }
 
 
@@ -35,14 +41,14 @@ int get_input_index()
     for(int i = 0; i < count; i++)
     {
         LV::PluginRef ref = list[i];
-        if(ref.info->plugname && !strcmp(v.input_name, ref.info->plugname))
+        if(ref.info->plugname && !strcmp(v->input_name.c_str(), ref.info->plugname))
             return i;
     }
     return -1;
 
 }
 
-void finalizeInput(const char *input)
+void finalizeInput(std::string input)
 {
 
 /*
@@ -69,7 +75,7 @@ void finalizeInput(const char *input)
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleInput(JNIEnv *env, jobject obj, jint prev)
 {
     v_cycleInput(prev);
-    finalizeInput(v.input_name);
+    finalizeInput(v->input_name);
     return get_input_index();
 }
 
@@ -104,10 +110,10 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputSetCu
     
     LV::PluginRef ref = list[index];
 
-    v.input_name = ref.info->plugname;
+    v->input_name = ref.info->plugname;
 
     if(now)
-        finalizeInput(v.input_name);
+        finalizeInput(v->input_name);
 
     return TRUE;
 }
@@ -117,7 +123,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_inputSetCu
 {
     jboolean iscopy;
     const char *input = env->GetStringUTFChars(name, &iscopy);
-    v.input_name = input;
+    v->input_name = (std::string)input;
     if(now)
         finalizeInput(input);
     return TRUE;

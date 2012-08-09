@@ -1,22 +1,60 @@
 
 #include "starvisuals.h"
 
-// ------ ACTORS ------
-void v_cycleActor (int prev, bool nogl = false)
-{
-    if(v.bin == NULL)
-        return;
+extern V *v;
 
-    const char *str = v.actor_name;
+
+void v_cycleActor (int prev, bool nogl)
+{
+    const char * name;
 
     if(nogl)
-        v.actor_name = prev ? visual_actor_get_prev_by_name_nogl(str)
+        name = prev ? visual_actor_get_prev_by_name_nogl(v->actor_name.c_str())
+                     : visual_actor_get_next_by_name_nogl(v->actor_name.c_str());
+    else
+        name = prev ? visual_actor_get_prev_by_name(v->actor_name.c_str())
+                     : visual_actor_get_next_by_name(v->actor_name.c_str());
+
+    if (!name) {
+        if(nogl)
+            name = prev ? visual_actor_get_prev_by_name_nogl(0)
+                    : visual_actor_get_next_by_name_nogl(0);
+        else      
+            name = prev ? visual_actor_get_prev_by_name(0)
+                    : visual_actor_get_next_by_name(0);
+    }
+
+    v->actor_name = (std::string)name;
+
+/*
+    if (strstr (exclude_actors.c_str(), name) != 0)
+        v_cycleActor(prev);
+*/
+}
+
+// ------ ACTORS ------
+/*
+void v_cycleActor (int prev, bool nogl = false)
+{
+    if(v->bin == NULL)
+        return;
+
+    const char *str = v->actor_name;
+
+    if(nogl)
+        str = prev ? visual_actor_get_prev_by_name_nogl(str)
                             : visual_actor_get_next_by_name_nogl(str);
     else
-        v.actor_name = prev ? visual_actor_get_prev_by_name(str)
+        str = prev ? visual_actor_get_prev_by_name(str)
                             : visual_actor_get_next_by_name(str);
     
+    if(str)
+    {
+        free(v->actor_name);
+        v->actor_name = (std::string)(str);
+    }
 }
+*/
 
 extern "C" {
 
@@ -36,7 +74,7 @@ LV::PluginRef &get_actor(int index)
 int get_actor_index()
 {
     LV::PluginList list = LV::PluginRegistry::instance()->get_plugins_by_type(VISUAL_PLUGIN_TYPE_ACTOR);
-    const char *name = visual_actor_get_plugin(v.bin->get_actor())->info->name;
+    const char *name = visual_actor_get_plugin(v->bin->get_actor())->info->name;
     if(!name)
     {
         visual_log(VISUAL_LOG_DEBUG, "get_actor_index() failed");
@@ -52,18 +90,18 @@ int get_actor_index()
 
 }
 
-void finalizeActor(const char *actor)
+void finalizeActor(std::string actor)
 {
-    v.bin->switch_actor((char *)actor);
+    v->bin->switch_actor(actor);
 }
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev, jboolean nogl)
 {
     
-    pthread_mutex_lock(&v.mutex);
+    pthread_mutex_lock(&v->mutex);
     v_cycleActor(prev, (bool)nogl);
-    finalizeActor(v.actor_name);
-    pthread_mutex_unlock(&v.mutex);
+    finalizeActor(v->actor_name);
+    pthread_mutex_unlock(&v->mutex);
     return get_actor_index();
 }
 
@@ -85,7 +123,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetCurren
     for(i = 0; i < count; i++)
     {
         LV::PluginRef ref = visual_list_get(list, i);
-        if(ref->info->plugname && !strcmp(v.actor_name, ref->info->plugname))
+        if(ref->info->plugname && !strcmp(v->actor_name, ref->info->plugname))
             return i;
     }
     return -1;
@@ -107,10 +145,10 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorSetCu
     
     LV::PluginRef ref = list[index];
 
-    v.actor_name = ref.info->plugname;
+    v->actor_name = (std::string)ref.info->plugname;
 
     if(now)
-        finalizeActor(v.actor_name);
+        finalizeActor(v->actor_name);
 
     return TRUE;
 }
@@ -120,7 +158,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorSetCu
 {
     jboolean iscopy;
     const char *actor = env->GetStringUTFChars(name, &iscopy);
-    v.actor_name = actor;
+    v->actor_name = (std::string)actor;
     if(now)
         finalizeActor(actor);
     return TRUE;
@@ -218,7 +256,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetLic
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetParamsCount(JNIEnv *env, jobject obj)
 {
-    VisParamContainer *params = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *params = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     int count = visual_list_count(params->entries);
     
@@ -227,7 +265,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorGetParams
 
 VisParamEntry *get_actor_param_entry(int index)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     visual_return_val_if_fail(cont != NULL, NULL);
 
@@ -244,7 +282,7 @@ VisParamEntry *get_actor_param_entry(int index)
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamGetCount(JNIEnv *env, jobject obj)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     visual_return_val_if_fail(cont != NULL, 0);
 
@@ -260,7 +298,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamG
 
     jstring string;
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -303,7 +341,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamG
     const char *chars = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(chars != NULL, NULL);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -321,7 +359,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
     visual_return_val_if_fail(param_name != NULL, FALSE);
     visual_return_val_if_fail(new_string != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -337,7 +375,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamGetI
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -354,7 +392,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -369,7 +407,7 @@ JNIEXPORT jfloat JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamGe
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0.0f);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -386,7 +424,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -401,7 +439,7 @@ JNIEXPORT jdouble JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParamG
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0.0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -418,7 +456,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v.bin->get_actor()));
+    VisParamContainer *cont = visual_plugin_get_params(visual_actor_get_plugin(v->bin->get_actor()));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 

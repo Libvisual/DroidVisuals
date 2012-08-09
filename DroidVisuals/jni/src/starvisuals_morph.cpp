@@ -2,6 +2,8 @@
 
 #include "starvisuals.h"
 
+extern V *v;
+
 extern "C" {
 
 // Get the VisMorph at the requested index.
@@ -19,13 +21,13 @@ int get_morph_index()
     for(int i = 0; i < count; i++)
     {
         LV::PluginRef ref = list[i];
-        if(ref.info->plugname && !strcmp(v.morph_name, ref.info->plugname))
+        if(ref.info->plugname && !strcmp(v->morph_name.c_str(), ref.info->plugname))
             return i;
     }
     return -1;
 }
 
-void finalizeMorph(const char *morph)
+void finalizeMorph(std::string morph)
 {
 
 }
@@ -34,17 +36,14 @@ void finalizeMorph(const char *morph)
 
 void v_cycleMorph ()
 {
-    return;
-    const char *str = visual_morph_get_plugin(v.bin->get_morph())->info->name;
-    auto name = visual_morph_get_next_by_name(str);
-
+    const char *name = visual_morph_get_next_by_name(v->input_name.c_str());
 
     if(not name)
     {
-        name = visual_morph_get_prev_by_name(str);
+        name = visual_morph_get_prev_by_name(0);
     }
 
-    v.morph_name = name;
+    v->morph_name = name;
 }
 
 
@@ -52,12 +51,12 @@ void v_cycleMorph ()
 #if 0
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleMorph(JNIEnv *env, jobject obj, jint prev)
 {
-    pthread_mutex_lock(&v.mutex);
+    pthread_mutex_lock(&v->mutex);
 
     v_cycleMorph(prev);
-    finalizeMorph(v.morph_name);
+    finalizeMorph(v->morph_name);
 
-    pthread_mutex_unlock(&v.mutex);
+    pthread_mutex_unlock(&v->mutex);
 
     return get_morph_index();
 }
@@ -73,14 +72,14 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphCount(JNI
 // Get the count of available morph plugins.
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_setMorphSteps(JNIEnv *env, jobject obj, jint steps)
 {
-    return visual_bin_switch_set_steps(v.bin, (int)steps);
+    return visual_bin_switch_set_steps(v->bin, (int)steps);
 }
 
 // Get the index of the current plugin. 
 // Note that this index may change as new plugins are added.
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetCurrent(JNIEnv *env)
 {
-    VisMorph *morph = visual_bin_get_morph(v.bin);
+    VisMorph *morph = visual_bin_get_morph(v->bin);
     if(morph)
         return morph->plugin->ref->index;
     return -1;
@@ -102,10 +101,13 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphSetCu
     
     LV::PluginRef ref = visual_list_get(list, index);
 
-    v.morph_name = ref->info->plugname;
+    if(v->morph_name)
+        free(v->morph_name);
+
+    v->morph_name = strdup(ref->info->plugname);
 
     if(now)
-        finalizeMorph(v.morph_name);
+        finalizeMorph(v->morph_name);
 
     return TRUE;
 }
@@ -117,11 +119,8 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphSetCu
     const char *morph = env->GetStringUTFChars(name, &iscopy);
     if(visual_morph_valid_by_name(morph))
     {
-        v.morph_name = morph;
         if(now)
-        {
             finalizeMorph(morph);
-        }
         return TRUE;
     }
     return FALSE;
@@ -202,7 +201,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphGetLic
 
 VisParamEntry *get_morph_param_entry(int index)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     visual_return_val_if_fail(cont != NULL, NULL);
 
@@ -219,7 +218,7 @@ VisParamEntry *get_morph_param_entry(int index)
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamGetCount(JNIEnv *env, jobject obj)
 {
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     visual_return_val_if_fail(cont != NULL, 0);
 
@@ -244,7 +243,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamG
 
     jstring string;
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -279,7 +278,7 @@ JNIEXPORT jstring JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamG
     const char *chars = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(chars != NULL, NULL);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, chars);
 
@@ -297,7 +296,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParam
     visual_return_val_if_fail(param_name != NULL, FALSE);
     visual_return_val_if_fail(new_string != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -312,7 +311,7 @@ JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamGetI
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -329,7 +328,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -344,7 +343,7 @@ JNIEXPORT jfloat JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamGe
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0.0f);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -361,7 +360,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
@@ -376,7 +375,7 @@ JNIEXPORT jdouble JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParamG
     const char *string = env->GetStringUTFChars(name, &iscopy);
     visual_return_val_if_fail(string != NULL, 0.0);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, string);
 
@@ -393,7 +392,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_morphParam
 
     visual_return_val_if_fail(param_name != NULL, FALSE);
 
-    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v.bin->morph));
+    VisParamContainer *cont = visual_plugin_get_params(visual_morph_get_plugin(v->bin->morph));
 
     VisParamEntry *entry = visual_param_container_get(cont, param_name);
 
