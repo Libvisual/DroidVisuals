@@ -53,15 +53,17 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
 
     int depthflag;
     VisVideoDepth depth;
-    pthread_mutex_lock(&v->mutex);
+
+
     VisMorph *bin_morph = visual_bin_get_morph(v->bin);
     std::string morph = v->morph_name;
 
     std::string actor = v->actor_name;
-
     
     if(bin_morph && !visual_morph_is_done(bin_morph))
         return FALSE;
+
+    pthread_mutex_lock(&v->mutex);
 
     switch(prev)
     {
@@ -73,12 +75,13 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
         default: v->morph_name = (MORPH); break;
     }
 
-    visual_log(VISUAL_LOG_INFO, "Switching actors %s -> %s", morph.c_str(), v->morph_name.c_str());
-
     //Update v->actor_name.
     v_cycleActor((int)prev, (bool)nogl); 
 
-    //v->bin->set_morph(v->morph_name);
+    v->set_morph(v->morph_name);
+
+    v->set_actor(v->actor_name);
+/*
     v->bin->switch_actor(v->actor_name);
 
     // handle depth of new actor
@@ -96,6 +99,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
             v->bin->set_depth(visual_video_depth_get_highest_nogl(v->bin->get_supported_depth()));
     }
     v->bin->force_actor_depth (v->bin->get_depth ());
+*/
 
     pthread_mutex_unlock(&v->mutex);
 
@@ -126,11 +130,8 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorIsGL(
 
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_visualsQuit(JNIEnv * env, jobject  obj, jboolean toExit)
 {
-
-    pthread_mutex_lock(&v->mutex);
     if(visual_is_initialized())
         visual_quit();
-    pthread_mutex_unlock(&v->mutex);
 }
 
 void app_main(int w, int h, const std::string &actor_, const std::string &input_, const std::string &morph_);
@@ -159,7 +160,7 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
         delete v;
     }
 
-    v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_DIRECT);
+    v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_MORPH);
 
 
 }
