@@ -4,13 +4,45 @@
 
 extern V *v;
 
-extern "C" {
 
 // ---------- INPUT ----------
 
+int v_upload_callback (VisInput* input, VisAudio *audio, void* unused)
+{
+
+/*
+    static VisTimer *timer = NULL;
+    static VisTime *then;
+    static VisTime *now;
+
+    if(timer == NULL)
+    {
+        now = visual_time_new();
+        then = visual_time_new();
+        timer = visual_timer_new();
+        visual_timer_start(timer);
+        visual_time_get(then);
+    }
+
+    visual_time_get(now);
+
+    visual_return_val_if_fail(input != NULL, VISUAL_ERROR_GENERAL);
+    visual_return_val_if_fail(audio != NULL, VISUAL_ERROR_GENERAL);
+    visual_return_val_if_fail(pcm_ref->pcm_data != NULL, VISUAL_ERROR_GENERAL);
+
+    VisParamContainer *paramcontainer = visual_plugin_get_params(input->plugin);
+
+    VisBuffer buf;
+
+    visual_buffer_init( &buf, pcm_ref->pcm_data, pcm_ref->size, NULL );
+    visual_audio_samplepool_input( audio->samplepool, &buf, pcm_ref->rate, pcm_ref->encoding, pcm_ref->channels);
+*/
+    return 0;
+}
 
 
 
+extern "C" {
 
 
 /* End of plugin and parameter getters and setters. */

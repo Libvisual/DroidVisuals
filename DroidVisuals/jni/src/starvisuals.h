@@ -46,13 +46,15 @@
 
 #define MAX_PCM 1024
 
-typedef struct PcmRef {
+int v_upload_callback (VisInput* input, VisAudio *audio, void* unused);
+
+typedef struct PcmRef_ {
     int16_t pcm_data[MAX_PCM]; // FIXME grow this with audio buffer size taken from java-side. later.
     int size;
     VisAudioSampleRateType rate;
     VisAudioSampleChannelType channels;
     VisAudioSampleFormatType encoding;
-};
+} PcmRef;
 
 /* LIBVISUAL */
 class V {
@@ -82,7 +84,25 @@ class V {
         bin->set_supported_depth(VISUAL_VIDEO_DEPTH_ALL);
 
         VisActor *actor = visual_actor_new(actor_name.c_str());
-        VisInput *input = visual_input_new(input_name.c_str());
+
+        VisInput *input = NULL;
+        if(strstr(input_name.c_str(), "mic"))
+        {
+        	if ((input = visual_input_new("dummy")) && 
+                visual_input_set_callback (input, v_upload_callback, NULL) < 0) {
+                visual_log(VISUAL_LOG_DEBUG, "Established dummy input for microphone callback."); 
+        	} else {
+                input = NULL;
+                visual_log(VISUAL_LOG_DEBUG, "Unable to apply callback to dummy input.");
+            }
+        }
+
+        if(input == NULL)
+            input = visual_input_new(input_name.c_str());
+
+        if(input == NULL)
+            visual_log(VISUAL_LOG_DEBUG, "Unable to create input plugin <%s>", input_name.c_str());
+
         depthflag = visual_actor_get_supported_depth(actor);
     
         if((depthflag == VISUAL_VIDEO_DEPTH_GL))
@@ -112,13 +132,15 @@ class V {
     
         bin->connect(actor, input);
     
-        bin->set_morph(morph_);
 
         bin->realize();
     
+        //bin->set_morph(morph_);
+
         bin->sync(false);
-    
+
         pluginIsGL = (depth == VISUAL_VIDEO_DEPTH_GL);
+
 
     }
 
@@ -161,7 +183,7 @@ class V {
 
     void set_morph(std::string mor)
     {
-        bin->set_morph(mor);
+        //bin->set_morph(mor);
     }
 
 };

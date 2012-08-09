@@ -126,74 +126,6 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_actorIsGL(
     return false;
 }
 
-static int v_upload_callback (VisInput* input, VisAudio *audio, void* unused)
-{
-
-/*
-    static VisTimer *timer = NULL;
-    static VisTime *then;
-    static VisTime *now;
-
-    if(timer == NULL)
-    {
-        now = visual_time_new();
-        then = visual_time_new();
-        timer = visual_timer_new();
-        visual_timer_start(timer);
-        visual_time_get(then);
-    }
-
-    visual_time_get(now);
-
-    visual_return_val_if_fail(input != NULL, VISUAL_ERROR_GENERAL);
-    visual_return_val_if_fail(audio != NULL, VISUAL_ERROR_GENERAL);
-    visual_return_val_if_fail(pcm_ref->pcm_data != NULL, VISUAL_ERROR_GENERAL);
-
-    VisParamContainer *paramcontainer = visual_plugin_get_params(input->plugin);
-
-    VisBuffer buf;
-
-    visual_buffer_init( &buf, pcm_ref->pcm_data, pcm_ref->size, NULL );
-    visual_audio_samplepool_input( audio->samplepool, &buf, pcm_ref->rate, pcm_ref->encoding, pcm_ref->channels);
-*/
-
-/*
-    if(paramcontainer != NULL && pcm_ref->do_beat)
-    {
-        VisParamEntry *entry = visual_param_container_get(paramcontainer, "isBeat");
-        if(entry == NULL)
-        {
-            entry = visual_param_entry_new("isBeat");
-            visual_param_container_add(paramcontainer, entry);
-        }
-
-        unsigned char scaled[pcm_ref->size];
-        visual_mem_set(scaled, 0, sizeof(scaled));
-
-        int i, isBeat;
-
-        for(i = 0; i < pcm_ref->size && i < MAX_PCM; i++)
-        {
-            scaled[i] = pcm_ref->pcm_data[i] / (float)FLT_MAX * UCHAR_MAX;
-        }
-        isBeat = visual_audio_is_beat_with_data(audio, VISUAL_BEAT_ALGORITHM_PEAK, scaled, MAX_PCM);
-        if(visual_timer_elapsed_msecs(timer) > pcm_ref->min_beat && isBeat)
-        {
-            visual_param_entry_set_integer(entry, isBeat);
-            pcm_ref->is_beat = TRUE;
-            visual_time_get(then);
-        }
-        int nowint = visual_time_get_msecs(now);
-        int thenint = visual_time_get_msecs(then);
-        if(pcm_ref->is_beat && nowint - thenint < pcm_ref->beat_hold)
-        {
-            visual_param_entry_set_integer(entry, TRUE);
-            pcm_ref->is_beat = FALSE;
-        }
-    }
-    */
-    return 0;
-}
 
 
 JNIEXPORT void JNICALL Java_net_starlon_droidvisuals_NativeHelper_visualsQuit(JNIEnv * env, jobject  obj, jboolean toExit)
@@ -237,30 +169,6 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
     }
 
     v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_DIRECT);
-
-    return;
-visual_log(VISUAL_LOG_CRITICAL, "hahah wtf %s %s %s", actor_.c_str(), input_.c_str(), morph_.c_str());
-    //pthread_mutex_lock(&v->mutex);
-
-
-/*
-    if(strstr(v->input_name.c_str(), "mic"))
-    {
-    	if (visual_input_set_callback (input, v_upload_callback, NULL) < 0) {
-
-    	    visual_log(VISUAL_LOG_CRITICAL, "Unable to set mic input callback.");	
-
-            visual_object_unref(VISUAL_OBJECT(input));
-
-            v->input_name = "dummy";
-
-            input = visual_input_new((char *)v->input_name.c_str());
-
-    	} else {
-        }
-    }
-*/
-
 
     visual_log (VISUAL_LOG_CRITICAL, "Libvisual version %s; bpp: %d %s\n", visual_get_version(), v->video->get_bpp(), (v->pluginIsGL ? "(GL)\n" : ""));
 
