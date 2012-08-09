@@ -5,8 +5,6 @@
 #include "config.h"
 #endif
 
-#include <math.h>
-
 #ifndef _ORC_INTEGER_TYPEDEFS_
 #define _ORC_INTEGER_TYPEDEFS_
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
@@ -66,18 +64,18 @@ typedef union { orc_int64 i; double f; orc_int32 x2[2]; float x2f[2]; orc_int16 
 #ifndef DISABLE_ORC
 #include <orc/orc.h>
 #endif
-void visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
-void visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n);
-void visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
-void visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n);
-void visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n);
-void visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n);
-void visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
-void visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n);
-void visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n);
-void visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n);
-void visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
-void visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
+void simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
+void simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n);
+void simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
+void simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n);
+void simd_int32s_to_floats (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, int n);
+void simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n);
+void simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
+void simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n);
+void simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n);
+void simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n);
+void simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
+void simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n);
 
 
 /* begin Orc C target preamble */
@@ -124,10 +122,10 @@ void visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1,
 
 
 
-/* visual_math_simd_mul_floats_float */
+/* simd_mul_floats_float */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
+simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -162,7 +160,7 @@ visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
 
 #else
 static void
-_backup_visual_math_simd_mul_floats_float (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_mul_floats_float (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -198,7 +196,7 @@ _backup_visual_math_simd_mul_floats_float (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
+simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -211,8 +209,8 @@ visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_mul_floats_float");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_mul_floats_float);
+      orc_program_set_name (p, "simd_mul_floats_float");
+      orc_program_set_backup_function (p, _backup_simd_mul_floats_float);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_parameter_float (p, 4, "p1");
@@ -244,10 +242,10 @@ visual_math_simd_mul_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
 #endif
 
 
-/* visual_math_simd_mul_floats_floats */
+/* simd_mul_floats_floats */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n){
+simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -284,7 +282,7 @@ visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_R
 
 #else
 static void
-_backup_visual_math_simd_mul_floats_floats (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_mul_floats_floats (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -322,7 +320,7 @@ _backup_visual_math_simd_mul_floats_floats (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n)
+simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -335,8 +333,8 @@ visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_R
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_mul_floats_floats");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_mul_floats_floats);
+      orc_program_set_name (p, "simd_mul_floats_floats");
+      orc_program_set_backup_function (p, _backup_simd_mul_floats_floats);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_source (p, 4, "s2");
@@ -364,10 +362,10 @@ visual_math_simd_mul_floats_floats (float * ORC_RESTRICT d1, const float * ORC_R
 #endif
 
 
-/* visual_math_simd_add_floats_float */
+/* simd_add_floats_float */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
+simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -402,7 +400,7 @@ visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
 
 #else
 static void
-_backup_visual_math_simd_add_floats_float (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_add_floats_float (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -438,7 +436,7 @@ _backup_visual_math_simd_add_floats_float (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
+simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -451,8 +449,8 @@ visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_add_floats_float");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_add_floats_float);
+      orc_program_set_name (p, "simd_add_floats_float");
+      orc_program_set_backup_function (p, _backup_simd_add_floats_float);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_parameter_float (p, 4, "p1");
@@ -484,23 +482,23 @@ visual_math_simd_add_floats_float (float * ORC_RESTRICT d1, const float * ORC_RE
 #endif
 
 
-/* visual_math_simd_floats_to_int32s */
+/* simd_floats_to_int32s */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n){
+simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
-  orc_union32 * ORC_RESTRICT ptr1;
+  const orc_union32 * ORC_RESTRICT ptr4;
   orc_union32 var32;
   orc_union32 var33;
 
   ptr0 = (orc_union32 *)d1;
-  ptr1 = (orc_union32 *)d2;
+  ptr4 = (orc_union32 *)s1;
 
 
   for (i = 0; i < n; i++) {
     /* 0: loadl */
-    var32 = ptr1[i];
+    var32 = ptr4[i];
     /* 1: convfl */
     {
        int tmp;
@@ -516,22 +514,22 @@ visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 
 #else
 static void
-_backup_visual_math_simd_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
   orc_union32 * ORC_RESTRICT ptr0;
-  orc_union32 * ORC_RESTRICT ptr1;
+  const orc_union32 * ORC_RESTRICT ptr4;
   orc_union32 var32;
   orc_union32 var33;
 
   ptr0 = (orc_union32 *)ex->arrays[0];
-  ptr1 = (orc_union32 *)ex->arrays[1];
+  ptr4 = (orc_union32 *)ex->arrays[4];
 
 
   for (i = 0; i < n; i++) {
     /* 0: loadl */
-    var32 = ptr1[i];
+    var32 = ptr4[i];
     /* 1: convfl */
     {
        int tmp;
@@ -546,7 +544,7 @@ _backup_visual_math_simd_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n)
+simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -559,12 +557,12 @@ visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_floats_to_int32s");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_floats_to_int32s);
+      orc_program_set_name (p, "simd_floats_to_int32s");
+      orc_program_set_backup_function (p, _backup_simd_floats_to_int32s);
       orc_program_add_destination (p, 4, "d1");
-      orc_program_add_destination (p, 4, "d2");
+      orc_program_add_source (p, 4, "s1");
 
-      orc_program_append_2 (p, "convfl", 0, ORC_VAR_D1, ORC_VAR_D2, ORC_VAR_D1, ORC_VAR_D1);
+      orc_program_append_2 (p, "convfl", 0, ORC_VAR_D1, ORC_VAR_S1, ORC_VAR_D1, ORC_VAR_D1);
 
       orc_program_compile (p);
       c = orc_program_take_code (p);
@@ -578,7 +576,7 @@ visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 
   ex->n = n;
   ex->arrays[ORC_VAR_D1] = d1;
-  ex->arrays[ORC_VAR_D2] = d2;
+  ex->arrays[ORC_VAR_S1] = (void *)s1;
 
   func = c->exec;
   func (ex);
@@ -586,23 +584,23 @@ visual_math_simd_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 #endif
 
 
-/* visual_math_simd_int32s_to_floats */
+/* simd_int32s_to_floats */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n){
+simd_int32s_to_floats (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
-  orc_union32 * ORC_RESTRICT ptr1;
+  const orc_union32 * ORC_RESTRICT ptr4;
   orc_union32 var32;
   orc_union32 var33;
 
   ptr0 = (orc_union32 *)d1;
-  ptr1 = (orc_union32 *)d2;
+  ptr4 = (orc_union32 *)s1;
 
 
   for (i = 0; i < n; i++) {
     /* 0: loadl */
-    var32 = ptr1[i];
+    var32 = ptr4[i];
     /* 1: convlf */
      var33.f = var32.i;
     /* 2: storel */
@@ -613,22 +611,22 @@ visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 
 #else
 static void
-_backup_visual_math_simd_int32s_to_floats (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_int32s_to_floats (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
   orc_union32 * ORC_RESTRICT ptr0;
-  orc_union32 * ORC_RESTRICT ptr1;
+  const orc_union32 * ORC_RESTRICT ptr4;
   orc_union32 var32;
   orc_union32 var33;
 
   ptr0 = (orc_union32 *)ex->arrays[0];
-  ptr1 = (orc_union32 *)ex->arrays[1];
+  ptr4 = (orc_union32 *)ex->arrays[4];
 
 
   for (i = 0; i < n; i++) {
     /* 0: loadl */
-    var32 = ptr1[i];
+    var32 = ptr4[i];
     /* 1: convlf */
      var33.f = var32.i;
     /* 2: storel */
@@ -638,7 +636,7 @@ _backup_visual_math_simd_int32s_to_floats (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RESTRICT d2, int n)
+simd_int32s_to_floats (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -651,12 +649,12 @@ visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_int32s_to_floats");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_int32s_to_floats);
+      orc_program_set_name (p, "simd_int32s_to_floats");
+      orc_program_set_backup_function (p, _backup_simd_int32s_to_floats);
       orc_program_add_destination (p, 4, "d1");
-      orc_program_add_destination (p, 4, "d2");
+      orc_program_add_source (p, 4, "s1");
 
-      orc_program_append_2 (p, "convlf", 0, ORC_VAR_D1, ORC_VAR_D2, ORC_VAR_D1, ORC_VAR_D1);
+      orc_program_append_2 (p, "convlf", 0, ORC_VAR_D1, ORC_VAR_S1, ORC_VAR_D1, ORC_VAR_D1);
 
       orc_program_compile (p);
       c = orc_program_take_code (p);
@@ -670,7 +668,7 @@ visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 
   ex->n = n;
   ex->arrays[ORC_VAR_D1] = d1;
-  ex->arrays[ORC_VAR_D2] = d2;
+  ex->arrays[ORC_VAR_S1] = (void *)s1;
 
   func = c->exec;
   func (ex);
@@ -678,10 +676,10 @@ visual_math_simd_int32s_to_floats (orc_uint32 * ORC_RESTRICT d1, float * ORC_RES
 #endif
 
 
-/* visual_math_simd_sqrt_floats */
+/* simd_sqrt_floats */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n){
+simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -711,7 +709,7 @@ visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRIC
 
 #else
 static void
-_backup_visual_math_simd_sqrt_floats (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_sqrt_floats (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -742,7 +740,7 @@ _backup_visual_math_simd_sqrt_floats (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n)
+simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -755,8 +753,8 @@ visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRIC
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_sqrt_floats");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_sqrt_floats);
+      orc_program_set_name (p, "simd_sqrt_floats");
+      orc_program_set_backup_function (p, _backup_simd_sqrt_floats);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
 
@@ -782,10 +780,10 @@ visual_math_simd_sqrt_floats (float * ORC_RESTRICT d1, const float * ORC_RESTRIC
 #endif
 
 
-/* visual_math_simd_floats_to_int32s_mul_float */
+/* simd_floats_to_int32s_mul_float */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
+simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -828,7 +826,7 @@ visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const
 
 #else
 static void
-_backup_visual_math_simd_floats_to_int32s_mul_float (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_floats_to_int32s_mul_float (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -872,7 +870,7 @@ _backup_visual_math_simd_floats_to_int32s_mul_float (OrcExecutor * ORC_RESTRICT 
 }
 
 void
-visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
+simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -885,8 +883,8 @@ visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_floats_to_int32s_mul_float");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_floats_to_int32s_mul_float);
+      orc_program_set_name (p, "simd_floats_to_int32s_mul_float");
+      orc_program_set_backup_function (p, _backup_simd_floats_to_int32s_mul_float);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_parameter_float (p, 4, "p1");
@@ -920,10 +918,10 @@ visual_math_simd_floats_to_int32s_mul_float (orc_uint32 * ORC_RESTRICT d1, const
 #endif
 
 
-/* visual_math_simd_int32s_to_floats_mul_float */
+/* simd_int32s_to_floats_mul_float */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n){
+simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -961,7 +959,7 @@ visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_
 
 #else
 static void
-_backup_visual_math_simd_int32s_to_floats_mul_float (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_int32s_to_floats_mul_float (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -1000,7 +998,7 @@ _backup_visual_math_simd_int32s_to_floats_mul_float (OrcExecutor * ORC_RESTRICT 
 }
 
 void
-visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n)
+simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_uint32 * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -1013,8 +1011,8 @@ visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_int32s_to_floats_mul_float");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_int32s_to_floats_mul_float);
+      orc_program_set_name (p, "simd_int32s_to_floats_mul_float");
+      orc_program_set_backup_function (p, _backup_simd_int32s_to_floats_mul_float);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_parameter_float (p, 4, "p1");
@@ -1048,10 +1046,10 @@ visual_math_simd_int32s_to_floats_mul_float (float * ORC_RESTRICT d1, const orc_
 #endif
 
 
-/* visual_math_simd_complex_norm */
+/* simd_complex_norm */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n){
+simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -1125,7 +1123,7 @@ visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRI
 
 #else
 static void
-_backup_visual_math_simd_complex_norm (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_complex_norm (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -1200,7 +1198,7 @@ _backup_visual_math_simd_complex_norm (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n)
+simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -1213,8 +1211,8 @@ visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRI
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_complex_norm");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_complex_norm);
+      orc_program_set_name (p, "simd_complex_norm");
+      orc_program_set_backup_function (p, _backup_simd_complex_norm);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_source (p, 4, "s2");
@@ -1247,10 +1245,10 @@ visual_math_simd_complex_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRI
 #endif
 
 
-/* visual_math_simd_complex_scaled_norm */
+/* simd_complex_scaled_norm */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n){
+simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -1338,7 +1336,7 @@ visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC
 
 #else
 static void
-_backup_visual_math_simd_complex_scaled_norm (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_complex_scaled_norm (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -1427,7 +1425,7 @@ _backup_visual_math_simd_complex_scaled_norm (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n)
+simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, const float * ORC_RESTRICT s2, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -1440,8 +1438,8 @@ visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_complex_scaled_norm");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_complex_scaled_norm);
+      orc_program_set_name (p, "simd_complex_scaled_norm");
+      orc_program_set_backup_function (p, _backup_simd_complex_scaled_norm);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_source (p, 4, "s2");
@@ -1481,10 +1479,10 @@ visual_math_simd_complex_scaled_norm (float * ORC_RESTRICT d1, const float * ORC
 #endif
 
 
-/* visual_math_simd_denorm_floats_to_int32s */
+/* simd_denorm_floats_to_int32s */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
+simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -1555,7 +1553,7 @@ visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const fl
 
 #else
 static void
-_backup_visual_math_simd_denorm_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_denorm_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -1627,7 +1625,7 @@ _backup_visual_math_simd_denorm_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
 }
 
 void
-visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
+simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -1640,8 +1638,8 @@ visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const fl
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_denorm_floats_to_int32s");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_denorm_floats_to_int32s);
+      orc_program_set_name (p, "simd_denorm_floats_to_int32s");
+      orc_program_set_backup_function (p, _backup_simd_denorm_floats_to_int32s);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_constant (p, 4, 0x00000000, "c1");
@@ -1680,10 +1678,10 @@ visual_math_simd_denorm_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const fl
 #endif
 
 
-/* visual_math_simd_denorm_neg_floats_to_int32s */
+/* simd_denorm_neg_floats_to_int32s */
 #ifdef DISABLE_ORC
 void
-visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
+simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n){
   int i;
   orc_union32 * ORC_RESTRICT ptr0;
   const orc_union32 * ORC_RESTRICT ptr4;
@@ -1782,7 +1780,7 @@ visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, cons
 
 #else
 static void
-_backup_visual_math_simd_denorm_neg_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
+_backup_simd_denorm_neg_floats_to_int32s (OrcExecutor * ORC_RESTRICT ex)
 {
   int i;
   int n = ex->n;
@@ -1882,7 +1880,7 @@ _backup_visual_math_simd_denorm_neg_floats_to_int32s (OrcExecutor * ORC_RESTRICT
 }
 
 void
-visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
+simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, const float * ORC_RESTRICT s1, float p1, int n)
 {
   OrcExecutor _ex, *ex = &_ex;
   static int p_inited = 0;
@@ -1895,8 +1893,8 @@ visual_math_simd_denorm_neg_floats_to_int32s (orc_uint32 * ORC_RESTRICT d1, cons
       OrcProgram *p;
 
       p = orc_program_new ();
-      orc_program_set_name (p, "visual_math_simd_denorm_neg_floats_to_int32s");
-      orc_program_set_backup_function (p, _backup_visual_math_simd_denorm_neg_floats_to_int32s);
+      orc_program_set_name (p, "simd_denorm_neg_floats_to_int32s");
+      orc_program_set_backup_function (p, _backup_simd_denorm_neg_floats_to_int32s);
       orc_program_add_destination (p, 4, "d1");
       orc_program_add_source (p, 4, "s1");
       orc_program_add_constant (p, 4, 0xbf800000, "c1");
