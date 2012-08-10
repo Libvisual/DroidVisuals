@@ -93,9 +93,6 @@ int lv_morph_checkers_apply (VisPluginData *plugin, float rate, VisAudio *audio,
     unsigned int tile_width  = dest_width  / n_tile_cols;
     unsigned int tile_height = dest_height / n_tile_rows;
 
-    unsigned int cols = dest_width / tile_width;
-    unsigned int rows = dest_height / tile_height;
-
     LV::VideoPtr sub = LV::Video::create(tile_width, tile_height, visual_video_get_depth(dest));
     sub->ref();
 
@@ -114,9 +111,9 @@ int lv_morph_checkers_apply (VisPluginData *plugin, float rate, VisAudio *audio,
     sub->unref();
 
     return 0;
-    for(unsigned int row = 0, y = 0; row < rows && y < dest_height; row++, y += tile_height)
+    for(unsigned int row = 0, y = 0; y < dest_height; row++, y += tile_height)
     {
-        for(unsigned int col = 0, x = 0; col < cols && x < dest_width; col++, x += tile_width)
+        for(unsigned int col = 0, x = 0; x < dest_width; col++, x += tile_width)
         {
 
 /*
