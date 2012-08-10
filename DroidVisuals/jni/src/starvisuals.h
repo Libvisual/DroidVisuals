@@ -58,11 +58,12 @@ typedef struct PcmRef_ {
 
 /* LIBVISUAL */
 class V {
+    private:
+    pthread_mutex_t mutex;
     public:
+    LV::Bin     *bin;
     LV::VideoPtr   video;
     //VisPalette  *pal;
-    LV::Bin     *bin;
-    pthread_mutex_t mutex;
     std::string actor_name;
     std::string input_name;
     std::string morph_name;
@@ -73,11 +74,14 @@ class V {
 
     ~V() ;
 
+    void realize();
     void set_actor(std::string act);
 
     void set_input(std::string inp);
     void set_morph(std::string mor);
 
+    void lock();
+    void unlock();
 };
 
 LV::PluginRef &get_input(int index);

@@ -128,7 +128,7 @@ public class DroidVisualsRenderer implements Renderer {
         final Timer timer = new Timer();
 
         TimerTask task = new TimerTask() {
-            boolean useEval = true;
+            boolean useEval = false;
             public void run() {
                 MemoryInfo mi = new MemoryInfo();
                 synchronized(mActivity.mSynch)

@@ -55,15 +55,19 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
     VisVideoDepth depth;
 
 
+    v->lock();
+
     VisMorph *bin_morph = visual_bin_get_morph(v->bin);
     std::string morph = v->morph_name;
 
     std::string actor = v->actor_name;
     
     if(bin_morph && !visual_morph_is_done(bin_morph))
+    {
+        v->unlock();
         return FALSE;
+    }
 
-    pthread_mutex_lock(&v->mutex);
 
     switch(prev)
     {
@@ -81,27 +85,8 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_finalizeSw
     v->set_morph(v->morph_name);
 
     v->set_actor(v->actor_name);
-/*
-    v->bin->switch_actor(v->actor_name);
 
-    // handle depth of new actor
-    depthflag = visual_actor_get_supported_depth(v->bin->get_actor());
-    if (depthflag == VISUAL_VIDEO_DEPTH_GL)
-    {
-        v->bin->set_depth(VISUAL_VIDEO_DEPTH_GL);
-    }
-    else
-    {
-        depth = visual_video_depth_get_highest(depthflag);
-        if ((v->bin->get_supported_depth() & depth) > 0)
-            v->bin->set_depth(depth);
-        else
-            v->bin->set_depth(visual_video_depth_get_highest_nogl(v->bin->get_supported_depth()));
-    }
-    v->bin->force_actor_depth (v->bin->get_depth ());
-*/
-
-    pthread_mutex_unlock(&v->mutex);
+    v->unlock();
 
     visual_log(VISUAL_LOG_DEBUG, "finalizeSwitch() - old %s, new %s", actor.c_str(), v->actor_name.c_str());
     return TRUE;
@@ -161,8 +146,6 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
     }
 
     v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_MORPH);
-
-
 }
 
 
@@ -203,15 +186,17 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
     static VisVideoDepth depth;
     LV::VideoPtr vid;
 
-    pthread_mutex_lock(&v->mutex);
+    v->lock();
 
     if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
         LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
+        v->unlock();
         return FALSE;
     }
 
     if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
         LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
+        v->unlock();
         return FALSE;
     }
 
@@ -253,7 +238,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     AndroidBitmap_unlockPixels(env, bitmap);
 
-    pthread_mutex_unlock(&v->mutex);
+    v->unlock();
 
     return v->pluginIsGL;
 }

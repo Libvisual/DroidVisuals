@@ -34,7 +34,6 @@ void v_cycleActor (int prev, bool nogl)
 
 void finalizeActor(std::string actor)
 {
-    v->bin->switch_actor(actor);
 }
 
 // Get the VisActor at the requested index.
@@ -75,11 +74,10 @@ extern "C" {
 
 JNIEXPORT jint JNICALL Java_net_starlon_droidvisuals_NativeHelper_cycleActor(JNIEnv *env, jobject obj, jint prev, jboolean nogl)
 {
-    
-    pthread_mutex_lock(&v->mutex);
+    v->lock();
     v_cycleActor(prev, (bool)nogl);
-    finalizeActor(v->actor_name);
-    pthread_mutex_unlock(&v->mutex);
+    v->set_actor(v->actor_name);
+    v->unlock();
     return get_actor_index();
 }
 
