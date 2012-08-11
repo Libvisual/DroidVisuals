@@ -46,6 +46,9 @@ Evaluator::Evaluator()
     mNetinfo = new PluginNetinfo(mScript);
     mNetDev = new PluginNetDev(mScript);
     mMeminfo = new PluginMeminfo(mScript);
+    mStatfs = new PluginStatfs(mScript);
+    mDiskstats = new PluginDiskstats(mScript);
+    mFifo = new PluginFifo(mScript);
 }
 
 Evaluator::~Evaluator()
@@ -59,7 +62,9 @@ Evaluator::~Evaluator()
     delete mUname;
     delete mNetinfo;
     delete mNetDev;
-    delete mMeminfo;
+    delete mStatfs;
+    delete mDiskstats;
+    delete mFifo;
 }
 
 std::string Evaluator::Eval(std::string str, std::string name)

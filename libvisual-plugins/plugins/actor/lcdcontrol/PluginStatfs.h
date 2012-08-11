@@ -21,31 +21,21 @@
  * along with LCDControl.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PLUGIN_DISKSTATS_H__
-#define __PLUGIN_DISKSTATS_H__
+#ifndef __PLUGIN_STATFS_H__
+#define __PLUGIN_STATFS_H__
 
-#include "Hash.h"
 #include <string>
+#include "luascript.h"
 
 namespace LCD {
 
-class Evaluator;
-
-class PluginDiskstats {
-
-    HASH DISKSTATS;
-    FILE *stream;
-    int ParseDiskstats();
-
+class PluginStatfs {
     public:
-    PluginDiskstats();
-    ~PluginDiskstats();
-    void Connect(Evaluator *visitor);
-    void Disconnect() {}
-
-    double Diskstats(std::string arg1, std::string arg2, int arg3);
+    double Statfs(std::string arg1, std::string arg2);
+    PluginStatfs(lua *script);
+    PluginStatfs();
+    ~PluginStatfs();
 };
 
 }; // End namespace
-
 #endif
