@@ -242,8 +242,8 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
 
     if (not v->pluginIsGL ) {
-        v->video_flip->convert_depth(v->video);
-        vid->blit(v->video_flip, 0, 0, false);
+        vid->convert_depth(v->video);
+        //vid->blit(v->video_flip, 0, 0, false);
         //vid->flip_pixel_bytes(v->video_flip);
     }
 
