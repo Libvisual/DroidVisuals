@@ -158,23 +158,21 @@ LV::VideoPtr new_video(int w, int h, VisVideoDepth depth)
 }
 */
 
-/*
-void swap_video_BGR(VisVideo *vid1, VisVideo *vid2)
+void swap_RGBxBGR(VisVideo *vid1, VisVideo *vid2)
 {
-    uint8_t *d = visual_video_get_pixels(vid1);
-    uint8_t *s = visual_video_get_pixels(vid2);
-    int i;
-
-    for(i = 0; i < vid1->width * vid1->get_height() * sizeof(int32_t); i+=4)
+    int r,i;
+    int8_t *pixels_out =  (int8_t *)visual_video_get_pixels(vid1);
+    int8_t *pixels_in = (int8_t *)visual_video_get_pixels(vid2);
+    for(i = 0; i < (vid1->get_bpp() * vid1->get_width()) - 4; i+=4)
     {
-
-        d[i] = s[i+2];
-        //d[i+1] = s[i+1];
-        d[i+2] = s[i];
-        d[i+3] = 0xff;
+        pixels_out[i] = pixels_in[i+2];
+        pixels_out[i+1] = pixels_in[i+1];
+        pixels_out[i+2] = pixels_in[i];
+        pixels_out[i+3] = pixels_in[i+3];
     }
+    
+    
 }
-*/
 
 // Render the view's bitmap image.
 JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitmap(JNIEnv * env, jobject  obj, jobject bitmap)
@@ -242,9 +240,13 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
 
     if (not v->pluginIsGL ) {
+#if 0
+        // This should work, but there's only black.
+        v->video_flip->convert_depth(v->video);
+        swap_RGBxBGR(vid.get(), v->video_flip.get());
+#else
         vid->convert_depth(v->video);
-        //vid->blit(v->video_flip, 0, 0, false);
-        //vid->flip_pixel_bytes(v->video_flip);
+#endif
     }
 
     vid->unref();
