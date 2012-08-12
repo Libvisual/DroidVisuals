@@ -145,7 +145,7 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
         delete v;
     }
 
-    v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_MORPH);
+    v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_DIRECT);
 }
 
 
@@ -201,6 +201,7 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
     }
 
     vid = LV::Video::wrap(pixels, false, info.width, info.height, DEVICE_DEPTH);
+    
 
     if(v->bin->depth_changed()  || 
         ((int)info.width != v->video->get_width() || 
@@ -220,6 +221,15 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
         v->video->set_pitch(visual_video_bpp_from_depth(depth) * info.width);
         v->video->allocate_buffer();
 
+        if(v->video_flip->has_allocated_buffer())
+            v->video_flip->free_buffer();
+
+        v->video_flip->set_dimension(info.width, info.height);
+        v->video_flip->set_depth(DEVICE_DEPTH);
+
+        v->video_flip->set_pitch(visual_video_bpp_from_depth(DEVICE_DEPTH) * info.width);
+        v->video_flip->allocate_buffer();
+        
         VisPluginData *plugin = visual_actor_get_plugin(visual_bin_get_actor(v->bin));
         VisEventQueue *eventqueue = visual_plugin_get_eventqueue(plugin);
         VisEvent *event = visual_event_new_resize(info.width, info.height);
@@ -230,8 +240,11 @@ JNIEXPORT jboolean JNICALL Java_net_starlon_droidvisuals_NativeHelper_renderBitm
 
     v->bin->run();
 
+
     if (not v->pluginIsGL ) {
-        vid->convert_depth(v->video);
+        v->video_flip->convert_depth(v->video);
+        vid->blit(v->video_flip, 0, 0, false);
+        //vid->flip_pixel_bytes(v->video_flip);
     }
 
     vid->unref();

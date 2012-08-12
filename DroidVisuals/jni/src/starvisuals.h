@@ -36,7 +36,7 @@
 
 // Initial plugins. Preferences should override these.
 #define MORPH "tentacle"
-#define ACTOR "lv_scope"
+#define ACTOR "jakdaw"
 #define INPUT "debug"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
@@ -63,6 +63,7 @@ class V {
     public:
     LV::Bin     *bin;
     LV::VideoPtr   video;
+    LV::VideoPtr   video_flip;
     //VisPalette  *pal;
     std::string actor_name;
     std::string input_name;

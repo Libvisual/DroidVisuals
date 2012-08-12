@@ -53,7 +53,12 @@ LCDControl::~LCDControl() {
 }
 
 int LCDControl::Start() {
+#if defined(VISUAL_OS_ANDROID)
+    std::string file = "/sdcard/lcdcontrol_config.js";
+#else
     std::string file = ((std::string)getenv("HOME")) + "/.lcdcontrol_config.js";
+#endif
+    visual_log(VISUAL_LOG_DEBUG, "file file file %s", file.c_str());
 
     if((active_ = CFG_Init(file)))
     {

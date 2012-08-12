@@ -630,6 +630,9 @@ namespace LV {
       visual_return_if_fail (compare_attrs (src));
 
       switch (m_impl->depth) {
+          case VISUAL_VIDEO_DEPTH_8BIT:
+              blit(src, 0, 0, false);
+              return;
           case VISUAL_VIDEO_DEPTH_16BIT:
               VideoConvert::flip_pixel_bytes_color16 (*this, *src);
               return;
