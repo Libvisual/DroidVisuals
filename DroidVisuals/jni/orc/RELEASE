@@ -1,0 +1,325 @@
+
+0.4.16
+======
+
+Fix a few bugs people noticed in 0.4.15.
+
+ - orc_init() tried to take the same mutex as generated C code that
+   calls (indirectly) orc_init().
+ - sse: Fixes for 64 bit pointers with any of the upper 32 bits set.
+
+
+0.4.15
+======
+
+This should have been release much earlier.
+
+ - Protect global resources with mutexes.  Duh.  This solves a bunch
+   of bug reports.
+ - Restore c64x-c backend.  Untested.
+ - Convert MMX and SSE backends to a new instruction scheduler.
+ - Add alignment and size hints to parser.
+
+
+0.4.14
+======
+
+Yet more bug fixing.  Altivec should work again, OS/X should
+work again.  MMX should work again.  Another codegen bug on
+SSE fixed.
+
+
+0.4.13
+======
+
+Fixes two serious code generation bugs in 0.4.12 on SSE and
+Altivec.  Also added some compatibility code to mitigate
+the previous automatic inclusion of stdint.h.
+
+
+0.4.12
+======
+
+This is primarily a bug fixing release.
+
+ - Fix gcc-4.6 warnings in generated code
+ - Codegen fixes for Altivec.  Passes regression tests again.
+ - More error checking for code allocation.
+ - NEON: floating point improvements
+ - Removed stdint.h from API.  This could theoretically cause
+   breakage if you depended on orc to include stdint.h.
+
+One new feature is the OrcCode structure, which keeps track of
+compiled code.  This now allows applications to free unused code.
+
+Internally, x86 code generation was completely refactored to add
+an intermediate stage, which will later be used for instruction
+reordering.  None of this is useful yet.
+
+
+0.4.11
+======
+
+This is primarily a bug fixing release.
+
+ - Fixes for CPUs that don't have backends
+ - Fix loading of double parameters
+ - mmx: Fix 64-bit parameter loading
+ - sse/mmx: Fix x2/x4 with certain opcodes
+
+There are still some issues with the ARM backend on certain
+architecture levels (especially ARMv6).  Some assistance from
+a user with access to such hardware would be useful.
+
+
+0.4.10
+======
+
+Changes:
+
+ - Added several simple 64-bit opcodes
+ - Improved debugging by adding ORC_CODE=emulate
+ - Allocation of mmap'd areas for code now has several fallback
+   methods, in order to placate various SELinux configurations.
+ - Various speed improvements in SSE backend
+ - Add SSE implementations of ldreslinl and ldresnearl.
+ - Update Mersenne Twister example
+
+There was a bug in the calculation of maximum loop shift that, when
+fixed, increases the speed of certain functions by a factor of two.
+However, the fix also triggers a bug in Schroedinger, which is fixed
+in the 1.0.10 release.
+
+
+0.4.9
+=====
+
+This is primarily a bug fixing release.
+
+Changes:
+
+ - Added handling for 64-bit constants
+ - Fix building and use of static library
+ - Fix register allocation on Win64 (still partly broken, however)
+ - Quiet some non-errors printed by orcc in 0.4.8.
+ - Fix implementation of several opcodes.
+
+Until this release, the shared libraries all had the same versioning
+information.  This should be fixed going forward.
+
+
+0.4.8
+=====
+
+Changes:
+
+ - Fix Windows and OS/X builds
+ - Improve behavior in failure cases
+ - Major improvements for Altivec backend
+ - Significant documentation additions
+
+Memory for executable code storage is now handled in a much more
+controlled manner, and it's now possible to reclaim this memory
+after it's no longer needed.
+
+A few more 64-bit opcodes have been added, mostly related to
+arithmetic on floating point values.
+
+The orcc tool now handles 64-bit and floating point parameters
+and constants.
+
+
+0.4.7
+=====
+
+Changes:
+
+ - Lots of specialized new opcodes and opcode prefixes.
+ - Important fixes for ARM backend
+ - Improved emulation of programs (much faster)
+ - Implemented fallback rules for almost all opcodes for
+   SSE and NEON backends
+ - Performance improvements for SSE and NEON backends.
+ - Many fixes to make larger programs compile properly.
+ - 64-bit data types are now fully implemented, although
+   there are few operations on them.
+
+Loads and stores are now handled by separate opcodes (loadb,
+storeb, etc).  For compatibility, these are automatically
+included where necessary.  This allowed new specialized
+loading opcodes, for example, resampling a source array
+for use in scaling images.
+
+Opcodes may now be prefixed by "x2" or "x4", indicating that
+a operation should be done on 2 or 4 parts of a proportionally
+larger value.  For example, "x4 addusb" performs 4 saturated
+unsigned additions on each of the four bytes of 32-bit
+quantities.  This is useful in pixel operations.
+
+The MMX backend is now (semi-) automatically generated from
+the SSE backend.
+
+The orcc tool has a new option "--inline", which creates inline
+versions of the Orc stub functions.  The orcc tool also recognizes
+a new directive '.init', which instructs the compiler to generate
+an initialization function, which when called at application init
+time, compiles all the generated functions.  This allows the
+generated stub functions to avoid checking if the function has
+already been compiled.  The use of these two features can
+dramatically decrease the cost of calling Orc functions.
+
+Known Bugs: Orc generates code that crashes on 64-bit OS/X.
+
+Plans for 0.4.8: (was 2.5 for 4 this time around, not too bad!)
+Document all the new features in 0.4.7.  Instruction scheduler.
+Code and API cleanup.
+
+
+
+0.4.6
+=====
+
+Changes:
+
+ - Various fixes to make Orc more portable
+ - Major performance improvements to NEON backend
+ - Minor performance improvements to SSE backend
+ - Major improvements to ARM backend, now passes regression
+   tests.
+
+The defaults for floating point operations have been changed
+somewhat: NANs are handled more like the IEEE 754 standard,
+and denormals in operations are treated as zeros.  The NAN
+changes causes certain SSE operations to be slightly slower,
+but produce less surprising results.  Treating denormals as
+zero has effects ranging from "slightly faster" to "now possible".
+
+New tool: orc-bugreport.  Mainly this is to provide a limited
+testing tool in the field, especially for embedded targets
+which would not have access to the testsuite that is not
+installed.
+
+The environment variable ORC_CODE can now be used to adjust
+some code generation.  See orc-bugreport --help for details.
+
+orcc has a new option to generate code that is compatible
+with older versions of Orc.  For example, if your software
+package only uses 0.4.5 features, you can use --compat 0.4.5
+to generate code that run on 0.4.5, otherwise it may generate
+code that requires 0.4.6.  Useful for generating source code
+for distribution.
+
+New NEON detection relies on Linux 2.6.29 or later.
+
+Plans for 0.4.7: (not that past predictions have been at all
+accurate) New opcodes for FIR filtering, scaling and compositing
+of images and video.  Instruction scheduler, helpful for non-OOO
+CPUs.  Minor SSE/NEON improvements.  Orcc generation of inline
+macros.
+
+
+0.4.5
+=====
+
+This release contains many small improvements related to
+converting GStreamer from liboil to Orc.
+
+The major addition in this release is the mainstreaming of
+the NEON backend, made possible by Nokia.
+
+There is a new experimental option to ./configure,
+--enable-backend, which allows you to choose a single code
+generation backend to include in the library.  This is mostly
+useful for embedded systems, and is not recommended in general.
+
+The upcoming release will focus on improving code generation
+for the SSE and NEON backends.
+
+
+0.4.4
+=====
+
+This is almost entirely a cleanup and bug fix release.
+
+ - fix register copying on x86-64
+ - better checking for partial test failures
+ - fix documention build
+ - fix build on many systems I don't personally use
+ - various fixes to build/run on Win64 (Ramiro Polla)
+ - add performance tests
+
+Next release will merge in the new pixel compositing opcodes
+and the SSE instruction scheduler.
+
+
+0.4.3
+=====
+
+New opcodes: all the 32-bit float opcodes from the orc-float
+library have been moved into the core library.
+
+New opcodes: splitlw and splitwb, which are equivalent to
+select0lw, select1lw, select0wb, and select1wb, except that
+the new opcodes split a value into two destinations in one
+opcode.
+
+New backend: c64x-c, for the TI C64x+ DSP.  This backend only
+produces source code, unlike other backends which can produce
+both source and binary code.  Generating code for this backend
+can be done using 'orcc --assembly --target=c64x-c'.
+
+Orc now understands and can generate code for two-dimensional
+arrays.  If the size of the array is known at compile time,
+this information can be used to improve generated code.
+
+Various improvements to the ARM backend by Wim Taymans.  The
+ARM backend is still experimental.
+
+
+0.4.2
+=====
+
+Bug fixes to C backend.  Turns out this is rather important on
+CPUs that don't have a native backend.
+
+New features have been postponed to 0.4.3.
+
+
+0.4.1
+=====
+
+This release introduces the orcc program, which parses .orc files and
+outputs C source files to compile into a library or application.  The
+main source file implements the functions described by the .orc source
+code, by creating Orc programs and compiling them at runtime.  Another
+source file that it outputs is a test program that can be compiled and
+run to determine if Orc is generating code correctly.  In future
+releases, the orcc tool will be expanded to output assembly code, as
+well as make it easier to use Orc in a variety of ways.
+
+Much of Schroedinger and GStreamer have been converted to use Orc
+instead of liboil, as well as converting code that wasn't able to
+use liboil.  To enable this in Schroedinger, use the --enable-orc
+configure option.  The GStreamer changes are in the orc branch in
+the repository at http://cgit.freedesktop.org/~ds/gstreamer
+
+Scheduled changes for 0.4.2 include a 2-D array mode for converting
+the remaining liboil functions used in Schroedinger and GStreamer.
+
+
+Major changes:
+
+ - Add the orcc compiler.  Generates C code that creates Orc programs
+   from .orc source files.
+ - Improved testing
+ - Fixes in the C backend
+ - Fix the MMX backend to emit 'emms' instructions.
+ - Add a few rules to the SSE backend.
+
+
+
+0.4.0
+=====
+
+Stuff happened.
+
