@@ -148,16 +148,6 @@ void app_main(int w, int h, const std::string &actor_, const std::string &input_
     v = new V(w, h, actor_, input_, morph_, VISUAL_SWITCH_STYLE_DIRECT);
 }
 
-
-
-/*
-LV::VideoPtr new_video(int w, int h, VisVideoDepth depth)
-{
-    LV::VideoPtr video = LV::Video::create(w, h, depth);
-    return video;
-}
-*/
-
 void swap_RGBxBGR(VisVideo *vid1, VisVideo *vid2)
 {
     int r,i;
