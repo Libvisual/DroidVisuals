@@ -18,7 +18,7 @@ V::V(int w, int h, std::string actor_, std::string input_, std::string morph_, V
         VisActor *actor = visual_actor_new(actor_name.c_str());
 
         VisInput *input = NULL;
-        if(strstr(input_name.c_str(), "mic"))
+        if(strstr(input_name.c_str(), "mic") == 0)
         {
         	if ((input = visual_input_new("dummy")) && 
                 visual_input_set_callback (input, v_upload_callback, NULL) < 0) {
