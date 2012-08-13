@@ -36,7 +36,7 @@
 
 // Initial plugins. Preferences should override these.
 #define MORPH "tentacle"
-#define ACTOR "lv_scope"
+#define ACTOR "lv_analyzer"
 #define INPUT "debug"
 
 #define URL_GPLv2 "http://www.gnu.org/licenses/gpl-2.0.txt"
