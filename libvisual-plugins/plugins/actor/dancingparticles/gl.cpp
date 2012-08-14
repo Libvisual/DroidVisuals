@@ -4,7 +4,7 @@
 
 #ifdef USE_OPENGL_ES
 #include <GLES/gl.h>
-#include "common/GL/glu.h"
+#include "GL/glu.h"
 #else
 #include <GL/gl.h>
 #include <GL/glu.h>

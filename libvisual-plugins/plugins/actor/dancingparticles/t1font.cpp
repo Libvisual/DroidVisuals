@@ -1,10 +1,13 @@
 #include "t1font.h"
 #include "etoile.h"
+#ifndef VISUAL_OS_ANDROID
 #include <t1lib.h>
+#endif
 #include <cstring>
 
 void loadString(const char *str)
 {
+#ifndef VISUAL_OS_ANDROID 
   static bool inited = false;
   static int fontID;
 
@@ -65,4 +68,5 @@ void loadString(const char *str)
 	}
   else
 	visual_log (VISUAL_LOG_WARNING, "No glyph");
+#endif
 }

@@ -2,7 +2,13 @@
 #define FLOATPOINT_HH
 
 #include <iostream>
+
+#if USE_OPENGL_ES
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
 using namespace std;
 
 #define myfloat  GLfloat

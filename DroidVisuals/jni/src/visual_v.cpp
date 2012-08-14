@@ -47,7 +47,10 @@ V::V(int w, int h, std::string actor_, std::string input_, std::string morph_, V
             depth = visual_video_depth_get_highest_nogl(depthflag);
         }
     
+
+
         bin->switch_set_style(switch_style);
+/*
         bin->switch_set_steps (12);
         bin->switch_set_automatic(true);
         bin->switch_set_rate(1.0f);
@@ -56,15 +59,17 @@ V::V(int w, int h, std::string actor_, std::string input_, std::string morph_, V
         LV::Time time(2, 0);
         bin->switch_set_time(time);
     
+*/
+
         video = LV::Video::create(w, h, depth);
         video_flip = LV::Video::create(w, h, DEVICE_DEPTH);
     
         bin->set_video(video);
-    
-        bin->set_depth(depth);
 
         bin->connect(actor, input);
-    
+
+        bin->set_depth(depth);
+
         set_morph(morph_);
 
         bin->realize();
